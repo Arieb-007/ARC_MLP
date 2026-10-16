@@ -4,9 +4,9 @@
 > given here (or a cited theorem); **[measured]** = produced by a script in this repo, output file
 > in `results/` (seed, versions, commit recorded there); **[hypothesis]** = interpretation or
 > extrapolation not yet tested; **[external]** = reported by another team, not re-measured by us.
-> Numbers in F4–F6 marked *(prompt)* come from Areeb's earlier runs as stated in the task brief;
-> they become **[measured]** once our re-run in `results/` reproduces them (see the
-> "reproduced?" column).
+> Numbers in F4–F6 came from Areeb's earlier runs as stated in the task brief; E1–E3 were re-run
+> on 2026-10-16 and reproduce them exactly (`results/2026-10-16_e{1,2,3}_*.md`), so they are now
+> **[measured]**. Rows still marked *prompt* in F6 were not re-run.
 
 Notation: `Φ, φ` standard normal CDF/PDF; `X ~ N(m, s²)`, `t = m/s`,
 `psi(m, s) = m Φ(t) + s φ(t)`. Layers `z_l = W_l h_{l-1}`, `h_l = ReLU(z_l)`, `W ~ N(0, 2/n)`.
@@ -138,27 +138,36 @@ theory, and the next 10× needs the random-sign κ4 slices, which ride on the sa
 (extra cost only in contractions: (4,) is O(n²), (3,1) and (2,2) one matmul each; (2,1,1) spawns
 mixed sources needing their own leg transports). Not tested; Stage 2.2 is the test.
 
-## F4 — Lyapunov rank law [prompt numbers; re-run: `results/*_e1_predictability.*`]
+## F4 — Rank of interval products [measured, reproduced: `results/2026-10-16_e1_predictability.md`]; the "Lyapunov rank law" heuristic is **falsified**
 
-Heuristic [hypothesis, from Newman 1986-type Gaussian-product spectra]: the interval product of
-`age` iid Gaussian-like maps has singular values `σ_k ≈ (k/n)^{-age/2}`-like decay, giving the
-rank at relative Frobenius error ε ≈ `n(1 − ε^{2/age})`. Measured on the closure's transfer
-maps `T = diag(Φ(t)) W` at n = 1024, L = 16 (`experiments/predictability.py`, seed 0):
+Measured on the closure's transfer maps `T = diag(Φ(t)) W` at n = 1024, L = 16
+(`experiments/predictability.py`, seed 0): rank at relative Frobenius error ε of the interval
+product of `age` layers. Our re-run reproduces the brief's numbers exactly.
 
-| age | rank @1% | @10% | @30% | heuristic @1% / 10% / 30% |
+| age | rank @1% | @10% | @30% | heuristic `n(1 − ε^{2/age})` @1% / 10% / 30% |
 |---|---|---|---|---|
-| 1 | 656 | 507 | 351 | see results file |
-| 2 | 563 | 388 | 236 | |
-| 4 | 437 | 264 | 145 | |
-| 8 | 300 | 160 | 80 | |
-| 15 | 199 | 98 | 47 | |
+| 1 | 656 | 507 | 351 | 1023 / 1013 / 931 |
+| 2 | 563 | 388 | 236 | 1013 / 921 / 716 |
+| 4 | 437 | 264 | 145 | 921 / 700 / 463 |
+| 8 | 300 | 160 | 80 | 700 / 448 / 266 |
+| 15 | 199 | 98 | 47 | 469 / 270 / 151 |
 
-(*prompt*; reproduced? → see `results/STATUS.md`.) Young sources need 1–2% accuracy (504aldo:
-extra MSE ≈ 4.2e-6·ε² on D21 [external]) → rank 400–650 → dense is cheaper; old sources tolerate
-~30% → rank 50–80 → marginal. This is consistent with 504aldo's "cliff" (rank 3n/8 at age 4,
-7n/32 at age 7) [interpretation: hypothesis].
+(n = 256 in the same results file: age 1 173/127/87 … age 15 51/25/13.)
 
-## F5 — Where the error lives [prompt numbers; re-run: `results/*_e2_conditional.*`, `*_e3_richardson.*`]
+**Correction to the brief.** The brief calls `n(1 − ε^{2/age})` the "Gaussian-product heuristic"
+and says it "derives 504aldo's cliff". The heuristic printed by the same script overpredicts every
+measured rank by 1.6–3.3× (e.g. age 1 @1%: 1023 vs 656; age 15 @30%: 151 vs 47). At age 1 the
+failure is structural: a single square Gaussian matrix has a quarter-circle singular-value law
+(Marchenko–Pastur), not a power law, so its 1% tail rank is ≈ 0.64 n, not n(1 − 10⁻⁴). The
+heuristic is therefore **falsified as a quantitative law** [measured]; what stands is the measured
+table. Its qualitative use stands: young sources need 1–2% accuracy (504aldo: extra MSE ≈
+4.2e-6·ε² on D21 [external]) → rank 440–660 at ages 1–4 → dense is cheaper than low rank; old
+sources tolerate ~30% → rank 47–80 at ages 8–15. 504aldo's empirical ranks (3n/8 = 384 at age 4,
+7n/32 = 224 at age 7) sit between our 10% and 1% columns [comparison; interpretation is a
+hypothesis]. A correct asymptotic law for products of `diag(Φ) W` maps (free-probability /
+Lyapunov-spectrum calculation à la Newman 1986) is open.
+
+## F5 — Where the error lives [measured, reproduced exactly: `results/2026-10-16_e2_conditional.md`, `results/2026-10-16_e3_richardson.md`]
 
 `experiments/conditional.py`, seed 3, n = 256, L = 8, 1.6M-sample truth, MC floor ≈ 1.2e-7:
 
@@ -166,7 +175,7 @@ extra MSE ≈ 4.2e-6·ε² on D21 [external]) → rank 400–650 → dense is ch
 |---|---|
 | K=2 closure, propagated | 3.56e-5 |
 | K=2 at last layer with oracle `μ_{L−1}, C_{L−1}` | 4.69e-6 (→ 87% of the error is accumulated drift) |
-| oracle-conditional on top-k modes of `h_{L−1}`, Gaussian bath, k = 1/4/16/64/128 | 4.24e-6 / 3.75e-6 / 2.16e-6 / 1.05e-6 / 7.5e-7 (last ≈ MC floor of the 200k oracle samples) |
+| oracle-conditional on top-k modes of `h_{L−1}`, Gaussian bath, k = 1/4/16/64/128 | 4.24e-6 / 3.75e-6 / 2.16e-6 / 1.05e-6 / 7.5e-7 (last ≈ MC floor of the 200k oracle samples; k = 256, i.e. plain MC on them, gives 7.9e-7) |
 
 62% of the squared error lies in the top eigenmode of Cov(h_L), which carries 10% of the variance.
 `experiments/richardson.py` (seeds 3, 4, 5): cos(top eigenvector, μ_L) = 0.95 / 0.87 / 0.94;
@@ -179,10 +188,10 @@ caused by diffuse random-sign κ3 contractions.
 
 | idea | evidence | status |
 |---|---|---|
-| any sampling component | output variance ≈ 0.08/neuron; 6,500 passes at 0.1B → raw 1.2e-5; 1e-8 needs ≈ 7e6 passes = 100 budgets; Rao–Blackwellising on slow modes is worse; randomized sketches of the cube need S ≳ n/ε² | prompt; arithmetic [proven] given the variance |
-| Richardson extrapolation across truncation orders | corr(K2 error, K2−K1) = +0.03 / −0.21 / +0.03 (seeds 3, 4, 5) | prompt → re-run E3 |
+| any sampling component | output variance ≈ 0.08/neuron (consistent with the grader's `sampling_mse` 1.132e-6 at 65,374 passes → 0.074 [external, #333467 report]); 6,500 passes at 0.1B → raw 1.2e-5; 1e-8 needs ≈ 7e6 passes = 100 budgets; Rao–Blackwellising on slow modes is worse; randomized sketches of the cube need S ≳ n/ε² | prompt; arithmetic [proven] given the variance |
+| Richardson extrapolation across truncation orders | corr(K2 error, K2−K1) = +0.031 / −0.214 / +0.029 (seeds 3, 4, 5); oracle α gains ≤ 8% | measured (E3) |
 | spherical designs / cubature at the input | O(n^{-1/2}) per-neuron 1-D error; Kerdock–MUB negative result | prompt |
-| conditioning on a few slow modes as a replacement for dense κ3 | E2: k=16 modes only halves the oracle K=2 error | prompt → re-run E2 |
+| conditioning on a few slow modes as a replacement for dense κ3 | E2: k = 16 modes only halves the oracle K=2 error (4.69e-6 → 2.16e-6) | measured (E2) |
 | Gaussian scale mixtures | 1.7× | prompt |
 | exact bivariate covariance alone | 7% | prompt |
 

@@ -33,13 +33,14 @@
 
 ### Measured (this session)
 - Stage-0 leaf probe (above).
-- E1–E3 re-runs: pending (see below).
+- E1–E3 re-runs reproduce the brief's F4–F6 numbers exactly (`results/2026-10-16_e{1,2,3}_*.md`).
+- Correction: E1's own "Gaussian-product heuristic" n(1−ε^{2/age}) overpredicts the measured ranks
+  by 1.6–3.3× → falsified as a quantitative law (FINDINGS F4); the measured table stands.
 
 ### Open / next
 1. Areeb: submit A (and optionally B); record IDs in `results/stage0_submission.md`.
-2. Re-run E1–E3, record in `results/`, mark F4–F6 reproduced or not.
-3. Stage 1: derive λ_l from the coherent partial trace (tree-level joint cumulants of ReLU outputs +
+2. Stage 1: derive λ_l from the coherent partial trace (tree-level joint cumulants of ReLU outputs +
    W^T Γ W ≈ 2γ̄ I); compare with V29's LAM/REF_R tables; first numerical check at small n.
-4. Stage 2.1: dense K≤4 reference at n=64/128 + MC verification.
+3. Stage 2.1: dense K≤4 reference at n=64/128 + MC verification.
 
 Next acceptance criterion: a graded, non-failed submission ID in `results/stage0_submission.md`.
