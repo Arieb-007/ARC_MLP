@@ -31,13 +31,13 @@ def provenance(repo_dir: str | os.PathLike = ".") -> dict:
                                   check=True).stdout.strip()
         except Exception:
             return None
+    from importlib.metadata import PackageNotFoundError, version
     vers = {}
-    for mod in ("numpy", "scipy", "flopscope", "whestbench", "opt_einsum", "threadpoolctl"):
+    for dist in ("numpy", "scipy", "flopscope", "whestbench", "opt-einsum", "threadpoolctl"):
         try:
-            m = __import__(mod)
-            vers[mod] = getattr(m, "__version__", "?")
-        except Exception:
-            vers[mod] = None
+            vers[dist] = version(dist)
+        except PackageNotFoundError:
+            vers[dist] = None
     return dict(commit=_git("rev-parse", "HEAD"), dirty=bool(_git("status", "--porcelain")),
                 versions=vers, python=sys.version.split()[0], host=platform.node(),
                 cpu_count=os.cpu_count(), utc=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
