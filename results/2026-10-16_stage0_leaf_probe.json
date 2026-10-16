@@ -1,0 +1,331 @@
+{
+ "kind": "stage0_leaf_probe",
+ "question": "Does STRASSEN_MIN=8 (or 16) change V29's predictions, FLOPs, memory, residual, wall?",
+ "falsifier": "Leaf 8 is not a pure cost change if final-layer predictions move by more than ~1% of the raw MSE (2e-10), or if peak RSS / residual / wall grow enough to breach grader caps after scaling by the measured local/grader ratio.",
+ "dataset": {
+  "path": "data/bake_1024x16_s0-3_n2e4",
+  "mlp_seeds": [
+   0,
+   1,
+   2,
+   3
+  ],
+  "n_samples_truth": 20000,
+  "note": "self-baked with whest dataset bake; truth too noisy for MSE, used for cost/timing only"
+ },
+ "estimator": "third_party/v29/estimator_v29.py with env V26_STRASSEN_MIN in {32,16,8}",
+ "harness": "arcmlp/eval/probe.py: one process, threadpool_limits(1), no RLIMIT_AS, MLP idx 0 = first call (STRASSEN_FIRST cap), 1-2 steady",
+ "probe": {
+  "32": [
+   {
+    "idx": 0,
+    "cb": 0.26705618178630175,
+    "wall": 71.22012305259705,
+    "residual": 0.4740191820098971,
+    "backend": 66.89494036999372,
+    "overhead": 3.851132413996311,
+    "VmPeak": 6210420736,
+    "VmHWM": 4197982208,
+    "VmRSS": 4009533440
+   },
+   {
+    "idx": 1,
+    "cb": 0.25396418128320875,
+    "wall": 84.55450415611267,
+    "residual": 0.48004581400141433,
+    "backend": 80.27592906000496,
+    "overhead": 3.798567509993518,
+    "VmPeak": 7571660800,
+    "VmHWM": 5999767552,
+    "VmRSS": 5545160704
+   },
+   {
+    "idx": 2,
+    "cb": 0.25255926814088525,
+    "wall": 78.9745523929596,
+    "residual": 0.43515133599521505,
+    "backend": 74.94184016300323,
+    "overhead": 3.5976140030015813,
+    "VmPeak": 7571660800,
+    "VmHWM": 5999767552,
+    "VmRSS": 5552623616
+   }
+  ],
+  "16": [
+   {
+    "idx": 0,
+    "cb": 0.26244756834739746,
+    "wall": 78.76414227485657,
+    "residual": 0.525389829998403,
+    "backend": 74.18260952600122,
+    "overhead": 4.056119939000382,
+    "VmPeak": 6507814912,
+    "VmHWM": 4494794752,
+    "VmRSS": 4306595840
+   },
+   {
+    "idx": 1,
+    "cb": 0.24834452871391477,
+    "wall": 92.08148097991943,
+    "residual": 0.5115197089996855,
+    "backend": 87.4952010349914,
+    "overhead": 4.074784478008951,
+    "VmPeak": 7912701952,
+    "VmHWM": 6340190208,
+    "VmRSS": 6065430528
+   },
+   {
+    "idx": 2,
+    "cb": 0.24695758427651526,
+    "wall": 84.05208492279053,
+    "residual": 0.4819735199905608,
+    "backend": 79.62922737399003,
+    "overhead": 3.9409518120194207,
+    "VmPeak": 7912701952,
+    "VmHWM": 6340190208,
+    "VmRSS": 6073659392
+   }
+  ],
+  "8": [
+   {
+    "idx": 0,
+    "cb": 0.2591887240919277,
+    "wall": 87.88992810249329,
+    "residual": 0.528742254988174,
+    "backend": 83.17642655000668,
+    "overhead": 4.184734884005138,
+    "VmPeak": 7259607040,
+    "VmHWM": 5247135744,
+    "VmRSS": 5058756608
+   },
+   {
+    "idx": 1,
+    "cb": 0.2441904436486766,
+    "wall": 100.63990807533264,
+    "residual": 0.5562599109716757,
+    "backend": 95.67738358397855,
+    "overhead": 4.406294996049837,
+    "VmPeak": 8055787520,
+    "VmHWM": 6483341312,
+    "VmRSS": 6208397312
+   },
+   {
+    "idx": 2,
+    "cb": 0.24319481767406614,
+    "wall": 93.1432089805603,
+    "residual": 0.5053332189982029,
+    "backend": 88.53965436596718,
+    "overhead": 4.098335160034367,
+    "VmPeak": 8055787520,
+    "VmHWM": 6483341312,
+    "VmRSS": 6217211904
+   }
+  ]
+ },
+ "final_layer_pred_diff_mse_vs_leaf32": {
+  "16": [
+   4.0764055165644107e-13,
+   5.527881003468321e-13,
+   9.08900939193613e-12
+  ],
+  "8": [
+   3.779205293171582e-13,
+   5.126907117141192e-13,
+   1.0815392283071912e-11
+  ]
+ },
+ "whest_subprocess_runs": {
+  "leaf8_sub": [
+   {
+    "idx": 0,
+    "cb": 0.2591887240919277,
+    "wall": 94.81565115899997,
+    "residual": 0.5531900699996299,
+    "residual_exhausted": true,
+    "error": null
+   },
+   {
+    "idx": 1,
+    "cb": 0.0,
+    "wall": 0.0,
+    "residual": 0.0,
+    "residual_exhausted": false,
+    "error": "rn fn(*args, **kwargs)\nnumpy._core._exceptions._ArrayMemoryError: Unable to allocate 300. MiB for an array with shape (8, 7, 343, 64, 64) and data type float32\n"
+   },
+   {
+    "idx": 2,
+    "cb": 0.0,
+    "wall": 0.0,
+    "residual": 0.0,
+    "residual_exhausted": false,
+    "error": "ckages/whestbench/runner.py\", line 535, in _read_response\n    raise RunnerError(\n    ...<2 lines>...\n    )\nwhestbench.runner.RunnerError: Worker closed stdout.\n"
+   },
+   {
+    "idx": 3,
+    "cb": 0.2591887240919277,
+    "wall": 90.66471245800005,
+    "residual": 0.54042786599598,
+    "residual_exhausted": true,
+    "error": null
+   }
+  ],
+  "leaf32_sub": [
+   {
+    "idx": 0,
+    "cb": 0.26705618178630175,
+    "wall": 68.22221388800006,
+    "residual": 0.44789776499897016,
+    "residual_exhausted": true,
+    "error": null
+   },
+   {
+    "idx": 1,
+    "cb": 0.25396418128320875,
+    "wall": 87.49604384999998,
+    "residual": 0.47879763000014464,
+    "residual_exhausted": true,
+    "error": null
+   },
+   {
+    "idx": 2,
+    "cb": 0.0,
+    "wall": 0.0,
+    "residual": 0.0,
+    "residual_exhausted": false,
+    "error": "ckages/whestbench/runner.py\", line 535, in _read_response\n    raise RunnerError(\n    ...<2 lines>...\n    )\nwhestbench.runner.RunnerError: Worker closed stdout.\n"
+   },
+   {
+    "idx": 3,
+    "cb": 0.26705618178630175,
+    "wall": 68.865648975,
+    "residual": 0.46563183500438754,
+    "residual_exhausted": true,
+    "error": null
+   }
+  ],
+  "leaf32_core0": [
+   {
+    "idx": 0,
+    "cb": 0.26705618178630175,
+    "wall": 71.82471021099991,
+    "residual": 0.4865517259868284,
+    "residual_exhausted": true,
+    "error": null
+   },
+   {
+    "idx": 1,
+    "cb": 0.0,
+    "wall": 0.0,
+    "residual": 0.0,
+    "residual_exhausted": false,
+    "error": "n fn(*args, **kwargs)\nnumpy._core._exceptions._ArrayMemoryError: Unable to allocate 375. MiB for an array with shape (10, 7, 343, 64, 64) and data type float32\n"
+   },
+   {
+    "idx": 2,
+    "cb": 0.0,
+    "wall": 0.0,
+    "residual": 0.0,
+    "residual_exhausted": false,
+    "error": "ckages/whestbench/runner.py\", line 535, in _read_response\n    raise RunnerError(\n    ...<2 lines>...\n    )\nwhestbench.runner.RunnerError: Worker closed stdout.\n"
+   },
+   {
+    "idx": 3,
+    "cb": 0.26705618178630175,
+    "wall": 69.30187214400007,
+    "residual": 0.47492879498668117,
+    "residual_exhausted": true,
+    "error": null
+   }
+  ]
+ },
+ "grader_reference_v29_leaf32": {
+  "source": "Hisernberg/arc-whitebox submissions/phase-2/333467-graded (external)",
+  "raw_mse": 2.1326515771136202e-08,
+  "mean_multiplier": 0.25416470960872173,
+  "adjusted": 5.418168137938331e-09,
+  "cb_min": 0.2526,
+  "cb_max": 0.2671,
+  "residual_mean": 0.183,
+  "residual_max": 0.195,
+  "predict_wall_mean": 68.9,
+  "predict_wall_max": 75.4,
+  "runtime": {
+   "python": "3.10.21",
+   "numpy": "2.2.6",
+   "flopscope": "0.12.1",
+   "whestbench": "0.16.1"
+  }
+ },
+ "provenance": {
+  "commit": "76856a85f453893a1b7785f871c8e82522b79154",
+  "dirty": true,
+  "versions": {
+   "numpy": "2.4.6",
+   "scipy": "1.18.1",
+   "flopscope": "0.12.3",
+   "whestbench": "0.16.1",
+   "opt-einsum": "3.4.0",
+   "threadpoolctl": "3.7.0"
+  },
+  "python": "3.13.16",
+  "host": "vm",
+  "cpu_count": 4,
+  "utc": "2026-10-16T13:16:09Z",
+  "note": "probes ran at commit 76856a8 + uncommitted arcmlp/eval/probe.py (committed with this file)"
+ },
+ "python310_check": {
+  "env": "Python 3.10.20, numpy 2.2.6, flopscope 0.12.3 (venv310); grader: 3.10.21 / 2.2.6 / 0.12.1",
+  "leaf8_submission": [
+   {
+    "idx": 0,
+    "cb": 0.2591887240919277,
+    "wall": 95.72745752334595,
+    "residual": 0.6607443510315534,
+    "backend": 89.81999725702462,
+    "overhead": 5.246662544943774,
+    "VmPeak": 7229304832,
+    "VmHWM": 5207007232,
+    "VmRSS": 5013213184
+   },
+   {
+    "idx": 1,
+    "cb": 0.2441904436486766,
+    "wall": 105.56187534332275,
+    "residual": 0.6744321400024091,
+    "backend": 99.57919988199319,
+    "overhead": 5.308309895004641,
+    "VmPeak": 7960178688,
+    "VmHWM": 6372679680,
+    "VmRSS": 6097833984
+   }
+  ],
+  "leaf32_fallback": [
+   {
+    "idx": 0,
+    "cb": 0.26705618178630175,
+    "wall": 73.71427178382874,
+    "residual": 0.5851508919986372,
+    "backend": 68.49250403197584,
+    "overhead": 4.636589509025725,
+    "VmPeak": 6145265664,
+    "VmHWM": 4041314304,
+    "VmRSS": 3929468928
+   },
+   {
+    "idx": 1,
+    "cb": 0.25396418128320875,
+    "wall": 91.09146785736084,
+    "residual": 0.6022648120042504,
+    "backend": 85.89058121801736,
+    "overhead": 4.5987146219786155,
+    "VmPeak": 7476510720,
+    "VmHWM": 5889884160,
+    "VmRSS": 5435228160
+   }
+  ],
+  "leaf8_pred_diff_vs_py313": [
+   4.54e-13,
+   7.09e-13
+  ]
+ }
+}
