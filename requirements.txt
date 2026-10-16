@@ -1,0 +1,6 @@
+numpy>=2.0,<2.5
+scipy>=1.10
+opt-einsum>=3.3
+threadpoolctl>=3.0
+flopscope>=0.12.1,<0.13
+whestbench>=0.16.0
