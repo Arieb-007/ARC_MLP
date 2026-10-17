@@ -144,7 +144,7 @@ def main():
         L.append("")
         if "K2" in out["dense"]:
             L.append(f"Orientation check: DenseProp(K=2) vs the starter-kit covariance closure on the dataset's weights, max |Δ| = "
-                     f"{out['dense']['K2'].get('k2_vs_kit_maxabs'):.1e} (must be ~1e-6 or less in float32).")
+                     f"{out['dense']['K2'].get('k2_vs_kit_maxabs'):.1e} (float32 chains: ~1e-5 or less is consistent; a wrong orientation gives O(0.1)).")
         L += ["", "**Pre-registered predictions (plan of 2026-10-17, from the n ≤ 256 scaling fits):**", ""]
         for v, pr in PRED.items():
             if v in out["dense"]:
