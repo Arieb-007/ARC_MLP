@@ -36,6 +36,9 @@ def main():
         os.environ[k] = v
     if a.features:
         os.environ["V17_DEBUG"] = "1"
+    # V29 caps Strassen at depth 4 on the first predict() of a process; the grader runs every MLP in
+    # one process, so a parallel harness must lift the cap or every MLP is billed as a first predict
+    os.environ.setdefault("V28_STRASSEN_FIRST", os.environ.get("V26_STRASSEN", "5"))
     os.environ.setdefault("OMP_NUM_THREADS", "1")
     outdir = os.path.join(a.out, a.tag)
     os.makedirs(outdir, exist_ok=True)

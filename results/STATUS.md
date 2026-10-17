@@ -49,3 +49,16 @@
 
 Next acceptance criterion: Stage-1 write-up draft (docs/writeup/writeup.md) with every table backed by results/,
 nominating [AIcrowd 336554](https://www.aicrowd.com/challenges/arc-white-box-estimation-challenge-2026/submissions/336554) (pending confirmation of its multiplier on the View page).
+
+## 2026-10-17 (late): GPU run at the official shape — see results/2026-10-17_gpu_run_analysis.md
+
+- [measured, A40, public mini split, N = 1e9 reference] V29+leaf 8 raw 2.26e-8 on 40 MLPs; dense K=3
+  4.29e-7; K=3 + coherent κ4 3.93e-8 (1.7× worse than V29, errors correlated 0.73). Width exponents
+  256→1024: K3 n^-1.99, coherent κ4 n^-3.01 (the integers of the order counting; the n ≤ 256 fits
+  over-predicted — both pre-registered point predictions falsified).
+- Knob sweep: no V29 knob improves the score (all CIs above 1). Corrector: 1.4 % on held-out MLPs → dropped.
+- κ4 go/no-go at depth 16: K4c3/K3c2 = 0.46/0.16/0.10 at n = 128/160/192 → GO; the gain is in the
+  random-sign (2,1,1) slice (removing it: 12×), not (3,1) (adding it alone recovers nothing).
+- Decision: nominate AIcrowd 336554 (5.23e-9); write-up (Oct 28) uses the 1024 measurements; the
+  factored (2,1,1) κ4 chain is the post-deadline program. Next acceptance criterion: write-up draft
+  in docs/writeup/ with the n = 1024 tables.
