@@ -14,3 +14,10 @@ Predictions for n = 256, L = 8 (same seeds 0–9, same MC protocol):
 1. ratio of mean MSE coh2 / K3c2 = 0.63 · 2^-(3.26-1.83) ≈ **0.23**; falsified if outside [0.12, 0.40].
 2. ratio ex4c2 / K3c2 ≈ 0.50 · 2^-(3.16-1.83) ≈ **0.20**; falsified if outside [0.10, 0.36].
 3. coh2 beats K3c2 on ≥ 9/10 networks.
+
+## Outcome (measured, results/2026-10-17_w7_coherent_even.md, n = 256, L = 8, seeds 0–9)
+1. coh2/K3c2 = 0.233 [0.196, 0.275] — **confirmed** (predicted 0.23).
+2. ex4c2/K3c2 = 0.186 [0.162, 0.216] — **confirmed** (predicted 0.20).
+3. coh2 beats K3c2 on 10/10 networks — **confirmed**.
+Three-width fits (n = 64, 128, 256): α(K3c2) = 1.90 [1.69, 2.11], α(coh2) = 3.34 [3.09, 3.51] at L = 8;
+2.29 [1.87, 2.62] vs 3.71 [3.39, 3.98] at L = 16 — consistent with the order counting (2 vs 3).
