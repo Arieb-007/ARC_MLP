@@ -27,7 +27,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from arcmlp.compress.cost_model import feature_cost  # noqa: E402
 from arcmlp.eval.local_eval import provenance  # noqa: E402
-from w5_selection import FEATURES, key  # noqa: E402
+from w5_selection import FEATURES, K3F, key  # noqa: E402
 
 DIVERGE = 1e-2
 BUDGET = 100.0
@@ -119,29 +119,71 @@ for (tier, n, Lr), rows in sorted(cells.items()):
                                    loo_per_seed=list(map(float, loo)), add_per_seed=list(map(float, add)))
         L.append(f"| {f} | {bl[0]:+.3f} [{bl[1]:+.3f}, {bl[2]:+.3f}] | {mde:.3f} | {dl} | {ba[0]:+.3f} [{ba[1]:+.3f}, {ba[2]:+.3f}] | {da} | {cost:.0f} |")
     L += ["", "(Effects are natural-log ratios of MSE: +0.69 = the feature halves the error.)", ""]
+    inert = [f for f in F if cell["features"][f]["add_per_seed"] and np.allclose(cell["features"][f]["add_per_seed"], 0, atol=1e-12)]
+    if inert:
+        L += [f"ADD ≡ 0 exactly for {', '.join(inert)}: these slices are read only by terms that write κ3/κ4 state, which",
+              "nothing in the K=2 base reads — they are inert alone (structural zero), not useless.", ""]
+    # factorial main effects (full 2^|F| lattice measured on some networks)
+    allsets = [set(c) for r_ in range(len(F) + 1) for c in itertools.combinations(F, r_)]
+    lat = [r for r in rows if all(key(S) in r["runs"] for S in allsets)]
+    if len(lat) >= 2:
+        me = {}
+        for f in F:
+            per = []
+            for r in lat:
+                d = [np.log(max(r["runs"][key(S)]["mse"], 1e-14)) - np.log(max(r["runs"][key(S | {f})]["mse"], 1e-14))
+                     for S in allsets if f not in S]
+                per.append(float(np.mean(d)))
+            me[f] = dict(main=boot(per), per_seed=per)
+        inter = []
+        for f, g in itertools.combinations(F, 2):
+            per = []
+            for r in lat:
+                lm = lambda S: np.log(max(r["runs"][key(S)]["mse"], 1e-14))
+                per.append(float(np.mean([lm(S) - lm(S | {f}) - lm(S | {g}) + lm(S | {f, g}) for S in allsets if f not in S and g not in S])))
+            inter.append((boot(per), f, g))
+        inter.sort(key=lambda x: -abs(x[0][0]))
+        cell["main_effects"] = me
+        cell["interactions"] = [dict(f=f, g=g, ci=b) for b, f, g in inter]
+        L += [f"### Full factorial (2^{len(F)} = {len(allsets)} feature sets) on {len(lat)} networks (seeds {sorted(r['seed'] for r in lat)})", "",
+              "Main effect = mean over all contexts S ∌ f of log MSE(S) − log MSE(S ∪ f) (> 0: f helps on average).", "",
+              "| feature | main effect [95% CI] |", "|---|---|"]
+        for f in sorted(F, key=lambda f: -me[f]["main"][0]):
+            b = me[f]["main"]
+            L.append(f"| {f} | {b[0]:+.3f} [{b[1]:+.3f}, {b[2]:+.3f}] |")
+        L += ["", "Largest two-feature interactions (mean over contexts of lm(S) − lm(S+f) − lm(S+g) + lm(S+f+g); < 0: the pair",
+              "helps more than the sum of its parts):", ""]
+        for b, f, g in inter[:5]:
+            L.append(f"- {f} × {g}: {b[0]:+.3f} [{b[1]:+.3f}, {b[2]:+.3f}]")
+        L.append("")
     # exhaustive within budget
-    subs = defaultdict(list)
-    for r in rows:
-        for k, v in r["runs"].items():
-            subs[k].append((r["seed"], v["mse"], tuple(v["feats"])))
-    ex = [k for k, v in subs.items() if len(v) == len(rows) and feature_cost(set(v[0][2]), tier) <= BUDGET]
-    if len(ex) > 2 * len(F) + 2:
-        lb = {r["seed"]: np.log(r["runs"][key([])]["mse"]) for r in rows}
+    inb = [S for S in allsets if feature_cost(S, tier) <= BUDGET]
+    exr = [r for r in rows if all(key(S) in r["runs"] for S in inb)]
+    if len(exr) >= 2 and len(inb) > 2 * len(F) + 2:
+        lb = {r["seed"]: np.log(r["runs"][key([])]["mse"]) for r in exr}
+        add_ex = {f: float(np.mean([lb[r["seed"]] - np.log(max(r["runs"][key({f})]["mse"], 1e-14)) for r in exr])) for f in F}
         tab = []
-        for k in ex:
-            feats = set(subs[k][0][2])
-            gain = [lb[s] - np.log(max(m, 1e-14)) for s, m, _ in subs[k]]
-            surrogate = sum(cell["features"][f]["add"][0] for f in feats)
-            tab.append((boot(gain), k, feats, feature_cost(feats, tier), float(np.mean([m for _, m, _ in subs[k]])), surrogate))
+        for S in inb:
+            gain = [lb[r["seed"]] - np.log(max(r["runs"][key(S)]["mse"], 1e-14)) for r in exr]
+            tab.append((boot(gain), S, feature_cost(S, tier), float(np.mean([r["runs"][key(S)]["mse"] for r in exr])),
+                        sum(add_ex[f] for f in S)))
         tab.sort(key=lambda x: -x[0][0])
-        best_sur = max(tab, key=lambda x: x[5])
-        cell["exhaustive"] = [dict(feats=sorted(t[2]), gain=t[0], cost=t[3], mean_mse=t[4], surrogate=t[5]) for t in tab]
-        L += [f"### Budgeted selection (billed cost ≤ {BUDGET:.0f} units at n = 1024, L = 16): {len(tab)} feature sets measured on all {len(rows)} networks", "",
-              "| rank | features on | billed units | mean MSE | gain vs K=2: mean log ratio [95% CI] | additive surrogate |", "|---|---|---|---|---|---|"]
-        for i, t in enumerate(tab[:8]):
-            L.append(f"| {i+1} | {', '.join(sorted(t[2])) or '(K=2)'} | {t[3]:.0f} | {t[4]:.3e} | {t[0][0]:+.3f} [{t[0][1]:+.3f}, {t[0][2]:+.3f}] | {t[5]:+.3f} |")
-        L += ["", f"Exact optimum on these networks: **{', '.join(sorted(tab[0][2]))}** ({tab[0][3]:.0f} units). "
-              f"Additive-surrogate optimum: {', '.join(sorted(best_sur[2]))} (measured gain {best_sur[0][0]:+.3f}).",
+        best_sur = max(tab, key=lambda x: (x[4], -len(x[1])))
+        cell["exhaustive"] = [dict(feats=sorted(t[1]), gain=t[0], cost=t[2], mean_mse=t[3], surrogate=t[4]) for t in tab]
+        cell["exhaustive_seeds"] = sorted(r["seed"] for r in exr)
+        L += [f"### Budgeted selection (billed cost ≤ {BUDGET:.0f} units at n = 1024, L = 16): all {len(tab)} feature sets that fit, measured on {len(exr)} networks (seeds {cell['exhaustive_seeds'][0]}–{cell['exhaustive_seeds'][-1]})", "",
+              "| rank | features on | billed units | mean MSE | gain vs K=2: mean log ratio [95% CI] | additive surrogate (sum of ADD) |", "|---|---|---|---|---|---|"]
+        for i, t in enumerate(tab[:10]):
+            L.append(f"| {i+1} | {', '.join(sorted(t[1])) or '(K=2)'} | {t[2]:.0f} | {t[3]:.3e} | {t[0][0]:+.3f} [{t[0][1]:+.3f}, {t[0][2]:+.3f}] | {t[4]:+.3f} |")
+        ref = {}
+        for nm, S in [("K=3 (cap 2) = Cpair+K3 all", {"Cpair"} | set(K3F)), ("O(1/n)-complete (all but cap3)", set(F) - {"cap3"}), ("all features", set(F))]:
+            if all(key(S) in r["runs"] for r in exr):
+                g_ = boot([lb[r["seed"]] - np.log(max(r["runs"][key(S)]["mse"], 1e-14)) for r in exr])
+                ref[nm] = (g_, feature_cost(S, tier))
+                L.append(f"| ref | {nm} | {feature_cost(S, tier):.0f} | {np.mean([r['runs'][key(S)]['mse'] for r in exr]):.3e} | {g_[0]:+.3f} [{g_[1]:+.3f}, {g_[2]:+.3f}] | |")
+        L += ["", f"Exact optimum within budget on these networks: **{', '.join(sorted(tab[0][1]))}** ({tab[0][2]:.0f} units). "
+              f"Additive-surrogate optimum (ADD effects assumed additive): {', '.join(sorted(best_sur[1])) or '(K=2)'} "
+              f"(measured gain {best_sur[0][0]:+.3f}).",
               "O(1/n)-completeness (every cost ≤ 2 diagram, i.e. all features except `cap3`) needs `K3(2,1)` and hence the",
               f"k3_21 family: billed {feature_cost(set(F) - {'cap3'}, tier):.0f} units > {BUDGET:.0f}, so the constrained knapsack is",
               "**infeasible** under this cost model.", ""]
@@ -169,6 +211,41 @@ for a_, b_ in itertools.combinations(keys, 2):
     out["spearman"][f"{a_}|{b_}"] = dict(rho=rho, ci=[float(lo), float(hi)], features=common)
     L.append(f"- {a_[0]} n={a_[1]} L={a_[2]} vs {b_[0]} n={b_[1]} L={b_[2]}: ρ = **{rho:.2f}** [{lo:.2f}, {hi:.2f}] over {len(common)} features")
 L.append("")
+
+# fresh-seed verification (data/w5_verify; pre-registered in docs/notes/w5_prereg_verification.md)
+ver = defaultdict(list)
+for p_ in sorted(glob.glob("data/w5_verify/*.json")):
+    r = json.load(open(p_))
+    ver[(r["tier"], r["n"], r["L"])].append(r)
+for (tier, n, Lr), rows in sorted(ver.items()):
+    rows = [r for r in rows if key([]) in r["runs"]]
+    if len(rows) < 2:
+        continue
+    names = {key([]): "K=2", key({"Cpair", "K3(3,)", "K4(4,)", "K4(2,2)"}): "selected (≤100 units)",
+             key({"Cpair", "K3(3,)"}): "Cpair+K3(3,)", key({"Cpair"} | set(K3F)): "K=3 cap 2",
+             key({"Cpair", "K4(4,)", "K4(2,2)"} | set(K3F)): "O(1/n)-complete light"}
+    common = [k for k in names if all(k in r["runs"] for r in rows)]
+    L += [f"## Verification on fresh networks: tier {tier}, n = {n}, L = {Lr}, seeds {sorted(r['seed'] for r in rows)}", "",
+          "Pre-registered in `docs/notes/w5_prereg_verification.md` before these runs.", "",
+          "| config | billed units | mean MSE | gain vs K=2: mean log ratio [95% CI] | wins vs K=2 |", "|---|---|---|---|---|"]
+    vres = {}
+    for k in common:
+        g_ = [np.log(r["runs"][key([])]["mse"]) - np.log(max(r["runs"][k]["mse"], 1e-14)) for r in rows]
+        feats = set(rows[0]["runs"][k]["feats"])
+        vres[names[k]] = dict(gain=boot(g_), per_seed=g_, cost=feature_cost(feats, tier), mean_mse=float(np.mean([r["runs"][k]["mse"] for r in rows])))
+        L.append(f"| {names[k]} | {feature_cost(feats, tier):.0f} | {vres[names[k]]['mean_mse']:.3e} | {vres[names[k]]['gain'][0]:+.3f} "
+                 f"[{vres[names[k]]['gain'][1]:+.3f}, {vres[names[k]]['gain'][2]:+.3f}] | {sum(x > 0 for x in g_)}/{len(g_)} |")
+    if "selected (≤100 units)" in vres and "O(1/n)-complete light" in vres:
+        sel, comp = vres["selected (≤100 units)"], vres["O(1/n)-complete light"]
+        diff = boot(np.array(comp["per_seed"]) - np.array(sel["per_seed"]))
+        p1 = sel["gain"][1] > 0
+        p2 = diff[0] > 1.0
+        p3 = sel["gain"][0] < 0.5
+        L += ["", f"Prediction 1 (selected beats K=2, CI excludes 0): **{'confirmed' if p1 else 'falsified'}** (gain {sel['gain'][0]:+.3f} [{sel['gain'][1]:+.3f}, {sel['gain'][2]:+.3f}]).",
+              f"Prediction 2 (O(1/n)-complete beats selected by > 1.0): **{'confirmed' if p2 else 'falsified'}** (difference {diff[0]:+.3f} [{diff[1]:+.3f}, {diff[2]:+.3f}]).",
+              f"Prediction 3 (selected gain < 0.5): **{'confirmed' if p3 else 'falsified'}**.", ""]
+        vres["predictions"] = dict(p1=p1, p2=p2, p3=p3, diff=diff)
+    out.setdefault("verification", {})[f"{tier}_n{n}_L{Lr}"] = vres
 
 # Pareto plot
 try:

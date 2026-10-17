@@ -18,7 +18,7 @@ set, so the report can derive any contrast):
   loo        full, base, full - f, base + f for every feature f
   exhaustive every subset of the features whose billed cost (arcmlp/compress/cost_model.py) fits
              the budget (default 100 units at n = 1024, L = 16)
-  configs    named feature sets given with --configs "A,B;C" (verification on fresh seeds)
+  configs    named feature sets given with --configs "A+B;C" (verification on fresh seeds; ";" separates sets)
 Falsifier (written before running): the selection does not transfer across widths if the Spearman
 rank correlation of leave-one-out deltas between n = 128 and n = 256 (light tier, L = 16) is < 0.7.
 
@@ -101,7 +101,7 @@ def jobs_for(tier, mode, budget, configs, L):
         js = [set(s) for r in range(len(F) + 1) for s in itertools.combinations(F, r)
               if feature_cost(s, tier, L=16) <= budget]
     else:
-        js = [set(x for x in c.split(",") if x) for c in configs.split(";")]
+        js = [set(x for x in c.split("+") if x) for c in configs.split(";")]
         js = [set(F) if s == {"ALL"} else s for s in js]
     out, seen = [], set()
     for s in js:
