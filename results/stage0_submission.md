@@ -1,26 +1,27 @@
 # Stage 0 — graded Phase-2 submission
 
 > LLM-generated record (Claude Code). Deadline: Phase-2 submissions close **2026-10-17 23:59 UTC**.
-> Status: **DONE — both submissions graded** (submitted by Areeb from a Kaggle notebook on
+> Status: **DONE — four submissions graded** (submitted by Areeb from a Kaggle notebook on
 > 2026-10-16; the cloud sandbox has no AIcrowd access).
 
 ## Grader results [measured by the grader; transcribed from Areeb's screenshot of the submissions page, 3 significant digits]
 
-| ID | submitted (page time) | status | adjusted | final-layer MSE | which bundle (inferred) |
+| ID | submitted (page time) | status | adjusted | final-layer MSE | bundle (inferred from the score) |
 |---|---|---|---|---|---|
-| #336561 | Oct 16, 18:20 | GRADED | 5.42e-9 | 2.13e-8 | A (leaf 8) — submitted first by the Kaggle cell |
-| #336562 | Oct 16, 18:41 | GRADED | 5.42e-9 | 2.13e-8 | B (V29 verbatim) — submitted after A's `--watch` ended |
+| #336554 | Oct 16, 17:42 | GRADED | **5.23e-9** | 2.13e-8 | A (V29 + STRASSEN_MIN=8) |
+| #336558 | Oct 16, 17:51 | GRADED | **5.23e-9** | 2.13e-8 | A (V29 + STRASSEN_MIN=8) |
+| #336561 | Oct 16, 18:20 | GRADED | 5.42e-9 | 2.13e-8 | B (V29 verbatim) |
+| #336562 | Oct 16, 18:41 | GRADED | 5.42e-9 | 2.13e-8 | B (V29 verbatim) |
 
-Acceptance criterion of Stage 0 (a graded, non-failed submission ID) is **met**.
+Acceptance criterion of Stage 0 (a graded, non-failed submission ID) is **met**. Best:
+**#336554 / #336558, 5.23e-9 adjusted**.
 
-**Open discrepancy.** The leaf-8 projection (≈ 5.22e-9 adjusted, multiplier ≈ 0.245) is **not**
-seen: both show 5.42e-9, i.e. the grader billed A like V29 (multiplier ≈ 0.254), or A's tarball
-did not contain the leaf-8 file. `origin/main:submission/estimator.py` does contain
-`STRASSEN_MIN ... "8"` (checked 2026-10-17 04:10 UTC). Needed to resolve: each submission's
-`mean_score_multiplier` / FLOPs from its "View" page or report.json, and
-`tar xzf s0a_leaf8.tar.gz -O estimator.py | grep "^STRASSEN_MIN ="` on Kaggle. Until then the
-leaf-8 projection is **unconfirmed** (treat as falsified on the grader).
-Leaderboard top (Areeb, 2026-10-17): 1.42e-9 adjusted — 3.8× below ours.
+**Leaf-8 projection vs grader.** Projected ≈ 5.22e-9 (multiplier ≈ 0.245, raw unchanged);
+graded 5.23e-9 with raw 2.13e-8 unchanged → implied multiplier 0.2542 × 5.23/5.42 ≈ 0.245
+[consistent; the bundle labels are inferred from the scores — confirm via each "View" page /
+report.json (`mean_score_multiplier`) before citing an ID in the write-up]. Leaf 8 did not
+fail on memory, residual or wall time on the grader (all 4 graded).
+Leaderboard top (Areeb, 2026-10-17): 1.42e-9 adjusted — 3.7× below our best.
 
 | field | primary (A) | fallback (B) |
 |---|---|---|
@@ -37,7 +38,7 @@ Leaderboard top (Areeb, 2026-10-17): 1.42e-9 adjusted — 3.8× below ours.
 | residual s | local 0.505–0.556 (py3.13); grader projection ≈ 0.21–0.23 **[projection]** | grader 0.183 mean / 0.195 max **[external]**; local 0.435–0.48 |
 | predict wall s | local 93–101; grader projection ≈ 81 / 89 max | grader 68.9 / 75.4 max |
 | peak RSS (local, in-process) | 6.48 GB | 6.00 GB |
-| submission ID | **TBD (Areeb)** | **TBD (optional)** |
+| submission ID | #336554, #336558 (5.23e-9) | #336561, #336562 (5.42e-9) |
 | commit | see `git log -- submission/` | see `git log -- submission_fallback_v29/` |
 
 Evidence: `results/2026-10-16_stage0_leaf_probe.{md,json}` (cost/memory/timing per leaf; prediction
