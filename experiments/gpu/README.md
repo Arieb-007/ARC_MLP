@@ -39,3 +39,16 @@ PYTHON=venv/bin/python DATASET=data/bake_1024x16_s0-3_n2e4 SPLIT=dev PROFILE=smo
   K4_N=32 K4_NMC=2e5 MC_N=2e5 ALLOW_CPU_GPU_STAGES=1 GPU_DATA_DIR=$PWD/data/gpu_dry \
   bash scripts/gpu_run.sh --device cpu --stages smoke,data,cpu,gpu,corrector,report
 ```
+
+## Round 2 (`--profile round2`, ~2–3 h): conditional-coherent proxies of the random-sign κ4 slices
+
+Question: can the (2,1,1) slice's effect (12× of the κ4 gain at depth 16, round 1) be bought at O(n²)
+by its regression on the covariance, κ4(z)_{aabc} ≈ λ_a C_bc (`arcmlp/estimators/cc_proxy.py`)?
+Stages: `k4` with the `round2` config set (oracle fit vs cheap formula, (2,1,1) and (3,1), with and
+without the (1,1,1,1) transmission and the full cap-3 set; n = 128/160/192, L = 16, 5 seeds), `k4L8`
+(depth-8 ladder), `dense` with the light chain + proxies at 1024×16 on 20 mini MLPs paired against
+the round-1 V29 baseline. Kill rule: oracle (2,1,1) recovers < 30 % of the paired→K4c3 log-gap.
+
+```bash
+bash scripts/gpu_run.sh --profile round2      # reuses round-1 data/gpu (MLPs, V29 baseline, MC truths)
+```

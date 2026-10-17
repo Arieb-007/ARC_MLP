@@ -23,6 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import ROOT, parse_idx, write_json  # noqa: E402
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "experiments"))
+from arcmlp.estimators.cc_proxy import CC_CONFIGS, CCProp  # noqa: E402
 from arcmlp.estimators.coherent_even import CoherentEvenProp  # noqa: E402
 from arcmlp.reference import dense_cumulants as dc  # noqa: E402
 from arcmlp.reference.device import device_info, free_pool, peak_mem_gb, resolve_device  # noqa: E402
@@ -44,14 +45,23 @@ CONFIGS = {
     "paired_c3+211": (ALL - RS) | {"K4(2,1,1)"},
     "coh2": "light:coherent:2",
     "ex4c2": "light:ex4:2",
+    "coh2_pboth": "light:coherent:2:pboth",
+    "ex4c2_pboth": "light:ex4:2:pboth",
 }
+CONFIGS.update({f"cc:{k}": ("cc", k) for k in CC_CONFIGS if k != "K4c3"})
+ROUND2 = "K3c2,K3c3,K4c2,K4c3,paired_c3,coh2,ex4c2,coh2_pboth,ex4c2_pboth," + ",".join(f"cc:{k}" for k in CC_CONFIGS if k != "K4c3")
 
 
-def make_prop(cfg, device):
+def make_prop(cfg, device, Ws=None):
     feats = CONFIGS[cfg]
+    if isinstance(feats, tuple) and feats[0] == "cc":
+        m211, m31, m1111, terms = CC_CONFIGS[feats[1]]
+        return CCProp(Ws, m211, m31, m1111, terms, device=device)
     if isinstance(feats, str):
-        _, mode, cap = feats.split(":")
-        return CoherentEvenProp(mode=mode, cap=int(cap), device=device)
+        parts = feats.split(":")
+        _, mode, cap = parts[:3]
+        pb = len(parts) > 3 and parts[3] == "pboth"
+        return CoherentEvenProp(mode=mode, cap=int(cap), device=device, p31=pb, p211=pb)
     Kt = 4 if feats & set(K4F) else 3
     pr = dc.DenseProp(Kt=Kt, cap=3, device=device)
     pr.active = [t for t in pr.active if gates(t) <= feats]
@@ -70,7 +80,7 @@ def main():
     ap.add_argument("--seeds", default="0-4")
     ap.add_argument("--N", type=float, default=1e7)
     ap.add_argument("--device", default=None)
-    ap.add_argument("--configs", default=",".join(CONFIGS))
+    ap.add_argument("--configs", default=",".join(CONFIGS), help="comma list; 'round2' = the CC proxy set")
     ap.add_argument("--out", default="data/gpu/k4")
     ap.add_argument("--mc-cache", default="data/gpu/mc")
     ap.add_argument("--chunk", type=int, default=65536)
@@ -78,7 +88,7 @@ def main():
     dev = resolve_device(a.device)
     os.makedirs(a.out, exist_ok=True)
     print("device:", json.dumps(device_info(dev), default=str), flush=True)
-    cfgs = [c.strip() for c in a.configs.split(",") if c.strip()]
+    cfgs = [c.strip() for c in (ROUND2 if a.configs == "round2" else a.configs).split(",") if c.strip()]
     for n in a.n:
         for sd in parse_idx(a.seeds):
             path = os.path.join(a.out, f"n{n}_L{a.L}_s{sd}.json")
@@ -93,10 +103,19 @@ def main():
                     continue
                 t0 = time.time()
                 try:
-                    mus = make_prop(cfg, dev).run(Ws)[0]
+                    pr = make_prop(cfg, dev, Ws)
+                    mus = pr.run(Ws)[0]
                     dm = debiased_mse(mus[-1], tr)
                     res["v"][cfg] = dict(mse=dm["debiased"], raw=dm["raw"], se=dm["se"], seconds=time.time() - t0,
                                          peak_mem_gb=peak_mem_gb(), error=None)
+                    diag = [d for d in getattr(pr, "diag", []) if any(k.startswith("r2_") for k in d)]
+                    if diag:
+                        for key in ("r2_211", "r2_31", "corr211", "corr31"):
+                            v = [d[key] for d in diag if d.get(key) is not None and np.isfinite(d[key])]
+                            if v:
+                                res["v"][cfg][key + "_mean"] = float(np.mean(v))
+                        res["v"][cfg]["diag"] = diag
+                    del pr
                 except Exception as e:
                     res["v"][cfg] = dict(mse=None, error=f"{type(e).__name__}: {str(e)[:200]}", seconds=time.time() - t0,
                                          traceback=traceback.format_exc()[-800:])

@@ -230,6 +230,37 @@ def main():
             L.append(f"| {n} | {Lr} | {len(rows)} | {fmt(rec['floor'], 1)} | {fmt(rec['K3c2'])} | {fmt(rec['K4c3'])} | "
                      f"**{f3(r0)}** [{r0[1]:.2f}, {r0[2]:.2f}] | {f3(rec['ratio_K4c2_K3c2'])} | {f3(rec['ratio_coh2_K3c2'])} | {f3(rec['no31'])} | {f3(rec['no211'])} | "
                      f"{f3(rec['no1111'])} | {f3(rec['paired'])} | {f3(rec['plus31'])} | {f3(rec['plus211'])} | {rec['sec']:.0f} | {rec['errors']} |")
+        # round 2: conditional-coherent proxies of the random-sign slices (arcmlp/estimators/cc_proxy.py)
+        cc_cfgs = sorted({c for r in k4 for c in r["v"] if c.startswith("cc:") or c.endswith("_pboth")})
+        if cc_cfgs:
+            L += ["", "### Conditional-coherent proxies (round 2): each config vs K4c3 and vs K3c2 (geometric means over seeds)", "",
+                  "Pre-registered: the λ_a·C form is dead if the oracle (2,1,1) fit recovers < 30 % of the log-gap paired_only → K4c3.", "",
+                  "| n | L | config | / K4c3 [95% CI] | / K3c2 | recovery of paired→K4c3 gap | R² (2,1,1) | R² (3,1) | corr λ formula/oracle (2,1,1) |",
+                  "|---|---|---|---|---|---|---|---|---|"]
+            out["k4_cc"] = {}
+            for (n, Lr), rows in sorted(byn.items()):
+                def col(cfg):
+                    return [r["v"].get(cfg, {}).get("mse") for r in rows]
+                def ratio(a, b):
+                    A, Bv = col(a), col(b)
+                    ok = [(x, y) for x, y in zip(A, Bv) if x is not None and y is not None and x > 0 and y > 0]
+                    return paired_log_ratio([x for x, _ in ok], [y for _, y in ok]) if ok else (np.nan,) * 4
+                gap = ratio("paired_only", "K4c3") if "paired_only" in {c for r in rows for c in r["v"]} else ratio("paired_c3", "K4c3")
+                for cfg in cc_cfgs:
+                    if not any(cfg in r["v"] for r in rows):
+                        continue
+                    r4, r3 = ratio(cfg, "K4c3"), ratio(cfg, "K3c2")
+                    rec_ = 1.0 - np.log(r4[0]) / np.log(gap[0]) if np.isfinite(r4[0]) and np.isfinite(gap[0]) and gap[0] > 1 else np.nan
+                    def dmean(key):
+                        v = [r["v"][cfg].get(key) for r in rows if cfg in r["v"] and r["v"][cfg].get(key) is not None]
+                        return float(np.mean(v)) if v else np.nan
+                    rec = dict(n=n, L=Lr, cfg=cfg, ratio_K4c3=r4[:3], ratio_K3c2=r3[:3], recovery=rec_, r2_211=dmean("r2_211_mean"),
+                               r2_31=dmean("r2_31_mean"), corr211=dmean("corr211_mean"))
+                    out["k4_cc"][f"n{n}_L{Lr}_{cfg}"] = rec
+                    fr = lambda t: f"{t[0]:.2f} [{t[1]:.2f}, {t[2]:.2f}]" if np.isfinite(t[0]) else "—"
+                    fx = lambda x: f"{x:.2f}" if np.isfinite(x) else "—"
+                    L.append(f"| {n} | {Lr} | {cfg} | {fr(r4)} | {fx(r3[0])} | {fx(rec_)} | {fx(rec['r2_211'])} | {fx(rec['r2_31'])} | {fx(rec['corr211'])} |")
+            L.append("")
         big = max(out["k4"].values(), key=lambda r: r["n"])
         r0 = big["ratio_K4c3_K3c2"]
         verdict = "no data" if not np.isfinite(r0[0]) else ("**GO** (ratio below the kill threshold)" if r0[0] <= K4_KILL else "**NO-GO** (ratio above the kill threshold)")

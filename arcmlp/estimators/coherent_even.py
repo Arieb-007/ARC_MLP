@@ -41,19 +41,28 @@ ALLOWED_K4 = {(4,), (2, 2)}
 
 
 class CoherentEvenProp(dc.DenseProp):
-    def __init__(self, mode="coherent", cap=2, dtype=None, k6=False, k8=False, k3sq=False, device=None):
-        super().__init__(Kt=4, cap=cap, dtype=dtype, device=device)
+    def __init__(self, mode="coherent", cap=2, dtype=None, k6=False, k8=False, k3sq=False, device=None,
+                 p31=False, p211=False):
+        """p31 / p211: add the conditional-coherent proxies of the random-sign (3,1) / (2,1,1) slices
+        (arcmlp/estimators/cc_proxy.py) and the single-block cost-3 terms that read them (the rest
+        of the cap-3 set stays off unless cap >= 3)."""
+        super().__init__(Kt=4, cap=max(cap, 3) if (p31 or p211) else cap, dtype=dtype, device=device)
         self.mode = mode
         self.k6, self.k8, self.k3sq = k6, k8, k3sq
+        self.p31, self.p211 = p31, p211
+        allowed = set(ALLOWED_K4) | ({(3, 1)} if p31 else set()) | ({(2, 1, 1)} if p211 else set())
         # drop terms that need unavailable kappa4(z) slices, and order-4 outputs over > 2 neurons
         keep = []
         for t in self.registry:
             if sum(t.p) == 4 and len(t.p) > 2:
                 continue
-            if any(sum(v) == 4 and dc.slice_type(v) not in ALLOWED_K4 for v in t.diagram):
+            if any(sum(v) == 4 and dc.slice_type(v) not in allowed for v in t.diagram):
                 continue
             if mode == "none" and any(sum(v) == 4 for v in t.diagram):
                 continue
+            if t.cost > cap:   # beyond the requested cap only the single random-sign proxy blocks
+                if not (len(t.diagram) == 1 and dc.slice_type(t.diagram[0]) in ((3, 1), (2, 1, 1))):
+                    continue
             keep.append(t)
         self.active = keep
         self.diag = []   # per-layer diagnostics
@@ -80,6 +89,13 @@ class CoherentEvenProp(dc.DenseProp):
             z22 = xp.full((n, n), 4.0 * bbar / n + 4.0 * Bbar, dtype=W.dtype)
         xp.fill_diagonal(z22, 0.0)
         Z["s4"], Z["s22"] = z4.astype(W.dtype), z22.astype(W.dtype)
+        if self.p31 or self.p211:
+            from arcmlp.estimators.cc_proxy import lam_formula_211, lam_formula_31
+            c = xp.diag(S[2])
+            if self.p31:
+                Z["lam31"] = lam_formula_31(W, S["b"], c, Bm).astype(W.dtype)
+            if self.p211:
+                Z["lam211"] = lam_formula_211(W, S["b"], c, Bm).astype(W.dtype)
         self.diag.append(dict(bbar=bbar, Bbar=Bbar, beta=4 * bbar / n + 4 * Bbar))
         return Z
 
@@ -93,6 +109,10 @@ class CoherentEvenProp(dc.DenseProp):
             sl[pat] = dc._diag_slice(Z[3], pat)
         sl[(4,)] = Z["s4"]
         sl[(2, 2)] = Z["s22"]
+        if self.p31:
+            sl[(3, 1)] = Z["lam31"][:, None] * Ct
+        if self.p211:
+            sl[(2, 1, 1)] = xp.einsum("a,bc->abc", Z["lam211"], Ct)
         return sl
 
     def relu_light(self, Z, layer):
