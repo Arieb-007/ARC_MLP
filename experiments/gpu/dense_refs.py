@@ -9,6 +9,7 @@ Variants (see docs/notes/w7_coherent_even_orders.md, results/2026-10-17_w7_coher
   ex4c2   coh2 with the exact paired (4,) slice (one matmul per layer); exallc2 exact (4,) and (2,2)
   K4c2 / K4c3  dense Kt=4 (n <= ~192 on a 48 GB GPU)
   <light>_p31 / _p211 / _pboth   + the conditional-coherent proxies of the random-sign slices (cc_proxy.py)
+  <light>_spike<r>               covariance projected to diag + rank-r spike after every ReLU (spiked.py, Algorithm E)
 
     python experiments/gpu/dense_refs.py --mlps data/gpu/mlps --idx 0-9 --variants K2,K3c2,coh2 --device cuda
 """
@@ -40,6 +41,10 @@ def make(variant, device):
     cap = int(base[-1])
     mode = {"coh": "coherent", "ex4c": "ex4", "exallc": "exall", "ex22": "exact22"}[base[:-1] if base != "ex22" else "ex22"]
     flags = variant.split("_")[1:]
+    spike = [f for f in flags if f.startswith("spike")]
+    if spike:
+        from arcmlp.estimators.spiked import SpikedCovProp
+        return SpikedCovProp(rank=int(spike[0][5:]), mode=mode, cap=cap, device=device)
     pb = "pboth" in flags
     return CoherentEvenProp(mode=mode, cap=cap, k6="k6" in flags, k8="k8" in flags, k3sq="k3sq" in flags, device=device,
                             p31=pb or "p31" in flags, p211=pb or "p211" in flags)

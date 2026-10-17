@@ -167,6 +167,8 @@ def main():
                         tr = np.load(os.path.join(D, "mlps", f"mlp_{i:04d}.npz"))["final_means"]
                     except Exception:
                         continue
+                    if pv.shape != tr.shape or pb.shape != tr.shape:
+                        continue
                     ev, eb = pv - tr, pb - tr
                     cs.append(float(np.corrcoef(ev, eb)[0, 1])); bl.append(float(np.mean(((pv + pb) / 2 - tr) ** 2))); rr.append(float(np.mean(eb ** 2)))
                 if cs:
@@ -268,6 +270,33 @@ def main():
               "The width trend of the ratio (≈ 4× per doubling at L = 8 in results/2026-10-17_w7_coherent_even.md) is what extrapolates to n = 1024; "
               "a ratio that does not fall with n at depth 16 falsifies the extrapolation.", ""]
         out["k4"]["verdict"] = verdict
+
+    # ---------------------------------------------------------------- Algorithm E: structure diagnostics
+    st = rows_of(os.path.join(D, "structure", "mlp_*.json"))
+    if st:
+        out["structure"] = st
+        nl = len(st[0]["layers"])
+        pick = sorted({0, 3, 7, 11, nl - 1} & set(range(nl)))
+        L += ["## Algorithm E — is the covariance low-rank + diagonal? (structure of the light chain's state at 1024×16)", "",
+              f"{len(st)} MLPs. 'off/diag' = ‖offdiag C‖²/‖diag C‖²; 'cov top-r' = fraction of the off-diagonal energy in the top-r eigenvectors; "
+              "'anchor k' = median variance of a non-anchor neuron explained by k pivoted-Cholesky anchors (Schur complement); the same spectral "
+              "fractions for the κ3 (2,1) matrix D21 and the κ4 memory B. Pre-registered expectation: top-64 < 15 %, anchors-64 < 10 %.", "",
+              "| layer | off/diag | cov top-16 | top-64 | top-256 | anchor 64 | anchor 256 | D21 top-64 | B top-64 |", "|---|---|---|---|---|---|---|---|---|"]
+        def avg(f):
+            return float(np.mean([f(r) for r in st]))
+        for l in pick:
+            g = lambda key, r: avg(lambda row: row["layers"][l][key].get(str(r), row["layers"][l][key].get(r, np.nan)))
+            L.append(f"| {l + 1} | {avg(lambda row: row['layers'][l]['offdiag_over_diag_energy']):.2f} | {g('cov_spectral', 16):.2f} | {g('cov_spectral', 64):.2f} | "
+                     f"{g('cov_spectral', 256):.2f} | {avg(lambda row: row['layers'][l]['anchor_r2'].get('64', row['layers'][l]['anchor_r2'].get(64, [np.nan]))[0]):.2f} | "
+                     f"{avg(lambda row: row['layers'][l]['anchor_r2'].get('256', row['layers'][l]['anchor_r2'].get(256, [np.nan]))[0]):.2f} | "
+                     f"{g('d21_spectral', 64):.2f} | {g('B_spectral', 64):.2f} |")
+        sp = {v: out["dense"][v] for v in out.get("dense", {}) if "spike" in v}
+        if sp and "coh2" in out.get("dense", {}):
+            L += ["", "MSE cost of the spiked closure (light chain with C projected to diag + rank r after every ReLU), vs the full light chain coh2:", ""]
+            for v, rec in sorted(sp.items(), key=lambda kv: int(kv[0].split("spike")[1])):
+                rk = rec.get("ratio_k3", (np.nan,) * 3)
+                L.append(f"- {v}: MSE {fmt(rec['mse'][0])}, ratio to coh2 ≈ {rec['mse'][0] / out['dense']['coh2']['mse'][0]:.1f}×")
+            L.append("")
 
     # ---------------------------------------------------------------- corrector
     cor = read_json(os.path.join(D, "corrector", "summary.json"))

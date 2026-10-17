@@ -52,3 +52,11 @@ the round-1 V29 baseline. Kill rule: oracle (2,1,1) recovers < 30 % of the paire
 ```bash
 bash scripts/gpu_run.sh --profile round2      # reuses round-1 data/gpu (MLPs, V29 baseline, MC truths)
 ```
+
+Round 2 also carries **Algorithm E** (`arcmlp/estimators/spiked.py`, from Areeb's RMT suggestions): the
+light chain with the covariance projected to diag + rank-r spike after every ReLU (`coh2_spike0/64/256`
+in `dense`) and the `structure` stage (off-diagonal spectral fractions, pivoted-Cholesky anchor R², the
+same for the κ3 (2,1) matrix and the κ4 memory B, at 1024×16). Pre-registered: top-64 eigenvectors hold
+< 15 % of the off-diagonal energy and 64 anchors explain < 10 % of a neuron's variance; the spike-64
+chain is > 10× worse than the full chain. (3-point moment-matched quadrature for the ReLU mean was
+rejected by arithmetic: it gives 0.289 instead of 0.399 for a standard Gaussian.)

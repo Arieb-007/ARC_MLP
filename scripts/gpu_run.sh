@@ -47,9 +47,10 @@ case "$PROFILE" in
          TRAIN_IDX=${TRAIN_IDX:-20-99}; TEST_IDX=${TEST_IDX:-0-19}
          SWEEP_VARIANTS=${SWEEP_VARIANTS:-"s4:V26_STRASSEN=4|s6:V26_STRASSEN=6|min16:V26_STRASSEN_MIN=16|rold256:V21_R_OLD=256|rold2_128:V24_R_OLD2=128|age3:V21_AGE_OLD=3|age5:V21_AGE_OLD=5|age2off:V24_AGE_OLD2=0|lam085:V17_LAM_SCALE=0.85|lam105:V17_LAM_SCALE=1.05|beta0:V25_BETA=0|nowk431:V17_NO_WK431=1|nofb:V18_NO_FB=1|noregen:V17_NO_REGEN=1"};;
   round2) FETCH_IDX=${FETCH_IDX:-0-39}; BASE_IDX=${BASE_IDX:-0-39}; SWEEP_IDX=${SWEEP_IDX:-0-0}; CONFIRM_IDX=${CONFIRM_IDX:-0-0}; DENSE_IDX=${DENSE_IDX:-0-19}
-         DENSE_VARIANTS=${DENSE_VARIANTS:-coh2,ex4c2,coh2_p31,coh2_p211,coh2_pboth,ex4c2_pboth,exallc2_pboth}
+         DENSE_VARIANTS=${DENSE_VARIANTS:-coh2,ex4c2,coh2_p31,coh2_p211,coh2_pboth,ex4c2_pboth,exallc2_pboth,coh2_spike0,coh2_spike64,coh2_spike256}
+         STRUCT_IDX=${STRUCT_IDX:-0-2}
          K4_N=${K4_N:-"128 160 192"}; K4_SEEDS=${K4_SEEDS:-0-4}; K4_NMC=${K4_NMC:-1e7}; K4_CONFIGS=${K4_CONFIGS:-round2}; MC_IDX=${MC_IDX:-0}; MC_N=${MC_N:-1e6}
-         TRAIN_IDX=${TRAIN_IDX:-20-39}; TEST_IDX=${TEST_IDX:-0-19}; SWEEP_VARIANTS=${SWEEP_VARIANTS:-""}; STAGES=${STAGES_OVERRIDE:-setup,smoke,data,cpu,gpu,k4L8,report};;
+         TRAIN_IDX=${TRAIN_IDX:-20-39}; TEST_IDX=${TEST_IDX:-0-19}; SWEEP_VARIANTS=${SWEEP_VARIANTS:-""}; STAGES=${STAGES_OVERRIDE:-setup,smoke,data,cpu,gpu,k4L8,structure,report};;
   *) echo "unknown profile $PROFILE" >&2; exit 2;;
 esac
 [ "$K4_CONFIGS" = all ] && K4_CONFIGS="K3c2,K3c3,K4c2,K4c3,K4c3-no31,K4c3-no211,K4c3-no1111,paired_c3,paired_c3+31,paired_c3+211,coh2,ex4c2"
@@ -184,6 +185,10 @@ if want k4L8 && { [ "$DEVICE" = cuda ] || [ "$ALLOW_CPU_GPU_STAGES" = 1 ]; }; th
   # depth-8 ladder for the width exponent of the exact chain (3 seeds)
   # shellcheck disable=SC2086
   stage k4L8 7200 "$PY" experiments/gpu/k4_gonogo.py --n $K4_N --L 8 --seeds 0-2 --N "$K4_NMC" --device "$DEVICE" --configs K3c2,K4c3,coh2,cc:cc211_formula --out "$GD/k4" --mc-cache "$GD/mc"
+fi
+
+if want structure && { [ "$DEVICE" = cuda ] || [ "$ALLOW_CPU_GPU_STAGES" = 1 ]; } && [ "$NMLP" -gt 0 ]; then
+  stage structure 3600 "$PY" experiments/gpu/structure.py --mlps "$MLPS" --idx "${STRUCT_IDX:-0-2}" --device "$DEVICE" --out "$GD/structure"
 fi
 
 # ------------------------------------------------------------------ join, corrector, report
