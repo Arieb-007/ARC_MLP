@@ -182,7 +182,7 @@ if want corrector && [ "$NMLP" -gt 0 ]; then
 fi
 if want report; then
   stage report 600 "$PY" experiments/gpu/report.py
-  ls -1 results/*_gpu_run.md 2>/dev/null | tail -1
+  ls -1 results/*_gpu_run.md "$GD"/report/*_gpu_run.md 2>/dev/null | tail -1
 fi
 if [ "$PUSH" = 1 ]; then bash scripts/gpu_push.sh || true; fi
-log "done. Report: $(ls -1t results/*_gpu_run.md 2>/dev/null | head -1)"
+log "done. Report: $(ls -1t results/*_gpu_run.md "$GD"/report/*_gpu_run.md 2>/dev/null | head -1)"

@@ -262,9 +262,11 @@ def main():
                   "Kill rule: < 10% MSE reduction on held-out networks → drop the corrector. A ratio of 0.73 would match Hisernberg's public GRU corrector.", ""]
 
     # ---------------------------------------------------------------- write
-    os.makedirs(os.path.join(ROOT, "results"), exist_ok=True)
-    jpath = os.path.join(ROOT, "results", f"{day}_gpu_run.json")
-    mpath = os.path.join(ROOT, "results", f"{day}_gpu_run.md")
+    # the real pipeline (data/gpu) writes into results/; test runs with GPU_DATA_DIR write next to their data
+    rdir = os.path.join(ROOT, "results") if os.path.realpath(D) == os.path.realpath(os.path.join(ROOT, "data", "gpu")) else os.path.join(D, "report")
+    os.makedirs(rdir, exist_ok=True)
+    jpath = os.path.join(rdir, f"{day}_gpu_run.json")
+    mpath = os.path.join(rdir, f"{day}_gpu_run.md")
     json.dump(out, open(jpath, "w"), indent=1, default=float)
     open(mpath, "w").write("\n".join(L) + "\n")
     print("\n".join(L))
