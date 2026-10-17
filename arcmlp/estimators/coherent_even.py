@@ -12,6 +12,10 @@ Pre-activation kappa4 slices z = W h used by the next ReLU (mode):
   'coherent'  : (4,)_a = (W^4 b)_a + 12 Bbar,  (2,2)_ab = 4 bbar/n + 4 Bbar   (rank one, O(n^2))
   'exact22'   : (4,)_a = (W^4 b)_a + 12 Bbar,  (2,2)_ab = ((W^2) diag(b) (W^2)^T)_ab + 4 Bbar
                 (one n x n x n matmul: the exact transport of the diagonal source)
+  'ex4'       : (4,)_a = (W^4 b)_a + 3 diag(W^2 B W^2^T)_a (one matmul), (2,2) rank one as 'coherent'
+                (added after the decomposition in results/*_w7_coherent_even.md showed the (4,) mean-field
+                 replacement 12 Bbar is what fails)
+  'exall'     : exact paired slices: (4,) as 'ex4', (2,2) = W^2 diag(b) W^2^T + W^2 B W^2^T (two matmuls)
 with W^k the entrywise power, bbar = mean_m b_m, Bbar = n^-2 sum_{m != p} B_mp. All other kappa4(z)
 slices ((3,1), (2,1,1), (1,1,1,1)) are set to zero: they are random-sign O(n^{-3/2}).
 The ReLU step is the dense reference's diagram expansion (arcmlp/reference/dense_cumulants.py) at
@@ -61,9 +65,15 @@ class CoherentEvenProp(dc.DenseProp):
         Bm = S["B"]
         Bbar = float((Bm.sum() - np.trace(Bm)) / n ** 2)
         W2 = W * W
-        z4 = (W2 * W2) @ S["b"] + 12.0 * Bbar
+        if self.mode in ("ex4", "exall"):
+            W2B = W2 @ Bm                                          # one matmul
+            z4 = (W2 * W2) @ S["b"] + 3.0 * np.sum(W2B * W2, axis=1)   # exact paired (4,) slice
+        else:
+            z4 = (W2 * W2) @ S["b"] + 12.0 * Bbar
         if self.mode == "exact22":
             z22 = (W2 * S["b"]) @ W2.T + 4.0 * Bbar
+        elif self.mode == "exall":
+            z22 = (W2 * S["b"]) @ W2.T + W2B @ W2.T                # exact paired (2,2) slice
         else:
             z22 = np.full((n, n), 4.0 * bbar / n + 4.0 * Bbar, dtype=W.dtype)
         np.fill_diagonal(z22, 0.0)

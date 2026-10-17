@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from arcmlp.reference.mc import cached_truth
 ap = argparse.ArgumentParser()
 ap.add_argument("--n", type=int, required=True); ap.add_argument("--L", type=int, nargs="+", default=[8, 16])
-ap.add_argument("--seeds", default="0-9"); ap.add_argument("--N", type=float, default=2e7)
+ap.add_argument("--seeds", default="0-9"); ap.add_argument("--N", type=float, default=4e6)
 a = ap.parse_args(); lo, hi = (int(x) for x in a.seeds.split("-"))
 for L in a.L:
     for sd in range(lo, hi + 1):

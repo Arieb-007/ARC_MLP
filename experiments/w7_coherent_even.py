@@ -38,7 +38,7 @@ def weights(n, L, seed):
 
 
 def variants(n):
-    v = ["K3c2", "K3c3", "coh2", "coh3", "ex22", "coh2_k6", "coh2_k6_k8", "coh2_k3sq"]
+    v = ["K3c2", "K3c3", "coh2", "coh3", "ex22", "ex4c2", "ex4c3", "exallc2", "exallc3", "coh2_k6", "coh2_k6_k8", "coh2_k3sq", "ex4c2_k6", "ex4c2_k6_k8"]
     if n <= 128:
         v += ["K4c2", "K4c3"]
     return v
@@ -52,8 +52,8 @@ def run_variant(Ws, name):
         mus = dc.propagate(Ws, K=Kt, cap=cap)[0]
     else:
         base = name.split("_")[0]
-        cap = 2 if base in ("coh2", "ex22") else 3
-        mode = "exact22" if base == "ex22" else "coherent"
+        cap = int(base[-1])
+        mode = {"coh": "coherent", "ex22": "exact22", "ex4c": "ex4", "exallc": "exall"}[base[:-1] if base != "ex22" else "ex22"]
         pr = CoherentEvenProp(mode=mode, cap=cap, k6="k6" in name, k8="k8" in name, k3sq="k3sq" in name)
         mus = pr.run(Ws)[0]
         extra["diag"] = pr.diag
@@ -67,7 +67,7 @@ def main():
     ap.add_argument("--n", type=int, required=True)
     ap.add_argument("--L", type=int, nargs="+", default=[8, 16])
     ap.add_argument("--seeds", default="0-9")
-    ap.add_argument("--N", type=float, default=2e7)
+    ap.add_argument("--N", type=float, default=4e6)
     ap.add_argument("--only", nargs="*", default=None)
     ap.add_argument("--mc-only", action="store_true")
     ap.add_argument("--outdir", default="data/w7")

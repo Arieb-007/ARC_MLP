@@ -1,0 +1,2823 @@
+{
+ "rows": [
+  {
+   "tid": "pK(1,)|",
+   "output_slice": "(1,)",
+   "output_order": 1,
+   "inputs": [],
+   "diagram": [],
+   "count": 1,
+   "coef": 1.0,
+   "cost": 0,
+   "order_in_1_over_n": 0.0,
+   "coherent": true,
+   "group": "backbone",
+   "families": [
+    "base"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(1,)|K3(3,)@(3,)",
+   "output_slice": "(1,)",
+   "output_order": 1,
+   "inputs": [
+    "K3(3,)"
+   ],
+   "diagram": [
+    [
+     3
+    ]
+   ],
+   "count": 1,
+   "coef": 0.16666666666666666,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": false,
+   "group": "use:K3(3,)",
+   "families": [
+    "base",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 77.2
+  },
+  {
+   "tid": "pK(1,)|K4(4,)@(4,)",
+   "output_slice": "(1,)",
+   "output_order": 1,
+   "inputs": [
+    "K4(4,)"
+   ],
+   "diagram": [
+    [
+     4
+    ]
+   ],
+   "count": 1,
+   "coef": 0.041666666666666664,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": true,
+   "group": "use:K4(4,)",
+   "families": [
+    "base",
+    "k4_diag"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(2,)|",
+   "output_slice": "(2,)",
+   "output_order": 2,
+   "inputs": [],
+   "diagram": [],
+   "count": 1,
+   "coef": 1.0,
+   "cost": 0,
+   "order_in_1_over_n": 0.0,
+   "coherent": true,
+   "group": "backbone",
+   "families": [
+    "base"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(2,)|K3(3,)@(3,)",
+   "output_slice": "(2,)",
+   "output_order": 2,
+   "inputs": [
+    "K3(3,)"
+   ],
+   "diagram": [
+    [
+     3
+    ]
+   ],
+   "count": 1,
+   "coef": 0.16666666666666666,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": false,
+   "group": "use:K3(3,)",
+   "families": [
+    "base",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 77.2
+  },
+  {
+   "tid": "pK(2,)|K4(4,)@(4,)",
+   "output_slice": "(2,)",
+   "output_order": 2,
+   "inputs": [
+    "K4(4,)"
+   ],
+   "diagram": [
+    [
+     4
+    ]
+   ],
+   "count": 1,
+   "coef": 0.041666666666666664,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": true,
+   "group": "use:K4(4,)",
+   "families": [
+    "base",
+    "k4_diag"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(1, 1)|K3(3,)@(0, 3)+C(1, 1)@(1, 1)",
+   "output_slice": "(1, 1)",
+   "output_order": 2,
+   "inputs": [
+    "K3(3,)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     3
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "count": 2,
+   "coef": 0.16666666666666666,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "use:C(1,1)+K3(3,)",
+   "families": [
+    "base",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 77.2
+  },
+  {
+   "tid": "pK(1, 1)|K4(4,)@(0, 4)+C(1, 1)@(1, 1)",
+   "output_slice": "(1, 1)",
+   "output_order": 2,
+   "inputs": [
+    "K4(4,)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     4
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "count": 2,
+   "coef": 0.041666666666666664,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "use:C(1,1)+K4(4,)",
+   "families": [
+    "base",
+    "k4_diag"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(1, 1)|C(1, 1)@(1, 1)",
+   "output_slice": "(1, 1)",
+   "output_order": 2,
+   "inputs": [
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 1.0,
+   "cost": 1,
+   "order_in_1_over_n": 0.5,
+   "coherent": false,
+   "group": "backbone",
+   "families": [
+    "base"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(1, 1)|C(1, 1)@(1, 1)+C(1, 1)@(1, 1)",
+   "output_slice": "(1, 1)",
+   "output_order": 2,
+   "inputs": [
+    "C(1,1)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 0.5,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": true,
+   "group": "use:C(1,1)",
+   "families": [
+    "base"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(1, 1)|C(1, 1)@(1, 1)+C(1, 1)@(1, 1)+C(1, 1)@(1, 1)",
+   "output_slice": "(1, 1)",
+   "output_order": 2,
+   "inputs": [
+    "C(1,1)",
+    "C(1,1)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 0.16666666666666666,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "use:C(1,1)",
+   "families": [
+    "base"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(1, 1)|C(1, 1)@(1, 1)+K3(2, 1)@(1, 2)",
+   "output_slice": "(1, 1)",
+   "output_order": 2,
+   "inputs": [
+    "C(1,1)",
+    "K3(2,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     2
+    ]
+   ],
+   "count": 2,
+   "coef": 0.5,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "use:C(1,1)+K3(2,1)",
+   "families": [
+    "base",
+    "k3_21",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(1, 1)|C(1, 1)@(1, 1)+K4(2, 2)@(2, 2)",
+   "output_slice": "(1, 1)",
+   "output_order": 2,
+   "inputs": [
+    "C(1,1)",
+    "K4(2,2)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     2
+    ]
+   ],
+   "count": 1,
+   "coef": 0.25,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "use:C(1,1)+K4(2,2)",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_22_exact"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(1, 1)|K3(2, 1)@(1, 2)",
+   "output_slice": "(1, 1)",
+   "output_order": 2,
+   "inputs": [
+    "K3(2,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     2
+    ]
+   ],
+   "count": 2,
+   "coef": 0.5,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": false,
+   "group": "use:K3(2,1)",
+   "families": [
+    "base",
+    "k3_21",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(1, 1)|K4(3, 1)@(1, 3)",
+   "output_slice": "(1, 1)",
+   "output_order": 2,
+   "inputs": [
+    "K4(3,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     3
+    ]
+   ],
+   "count": 2,
+   "coef": 0.16666666666666666,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "use:K4(3,1)",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_31"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(1, 1)|K4(2, 2)@(2, 2)",
+   "output_slice": "(1, 1)",
+   "output_order": 2,
+   "inputs": [
+    "K4(2,2)"
+   ],
+   "diagram": [
+    [
+     2,
+     2
+    ]
+   ],
+   "count": 1,
+   "coef": 0.25,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": true,
+   "group": "use:K4(2,2)",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_22_exact"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(3,)|",
+   "output_slice": "(3,)",
+   "output_order": 3,
+   "inputs": [],
+   "diagram": [],
+   "count": 1,
+   "coef": 1.0,
+   "cost": 0,
+   "order_in_1_over_n": 0.0,
+   "coherent": true,
+   "group": "backbone",
+   "families": [
+    "base"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(3,)|K3(3,)@(3,)",
+   "output_slice": "(3,)",
+   "output_order": 3,
+   "inputs": [
+    "K3(3,)"
+   ],
+   "diagram": [
+    [
+     3
+    ]
+   ],
+   "count": 1,
+   "coef": 0.16666666666666666,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": false,
+   "group": "prod3:K3",
+   "families": [
+    "base",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 77.2
+  },
+  {
+   "tid": "pK(3,)|K4(4,)@(4,)",
+   "output_slice": "(3,)",
+   "output_order": 3,
+   "inputs": [
+    "K4(4,)"
+   ],
+   "diagram": [
+    [
+     4
+    ]
+   ],
+   "count": 1,
+   "coef": 0.041666666666666664,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": true,
+   "group": "prod3:K4",
+   "families": [
+    "base",
+    "k4_diag"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(2, 1)|K3(3,)@(0, 3)+C(1, 1)@(1, 1)",
+   "output_slice": "(2, 1)",
+   "output_order": 3,
+   "inputs": [
+    "K3(3,)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     3
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 0.16666666666666666,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod3:K3",
+   "families": [
+    "base",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 77.2
+  },
+  {
+   "tid": "pK(2, 1)|K4(4,)@(0, 4)+C(1, 1)@(1, 1)",
+   "output_slice": "(2, 1)",
+   "output_order": 3,
+   "inputs": [
+    "K4(4,)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     4
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 0.041666666666666664,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod3:K4",
+   "families": [
+    "base",
+    "k4_diag"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(2, 1)|C(1, 1)@(1, 1)",
+   "output_slice": "(2, 1)",
+   "output_order": 3,
+   "inputs": [
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 1.0,
+   "cost": 1,
+   "order_in_1_over_n": 0.5,
+   "coherent": false,
+   "group": "prod3:C",
+   "families": [
+    "base"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(2, 1)|C(1, 1)@(1, 1)+C(1, 1)@(1, 1)",
+   "output_slice": "(2, 1)",
+   "output_order": 3,
+   "inputs": [
+    "C(1,1)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 0.5,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": true,
+   "group": "prod3:C",
+   "families": [
+    "base"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(2, 1)|C(1, 1)@(1, 1)+C(1, 1)@(1, 1)+C(1, 1)@(1, 1)",
+   "output_slice": "(2, 1)",
+   "output_order": 3,
+   "inputs": [
+    "C(1,1)",
+    "C(1,1)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 0.16666666666666666,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod3:C",
+   "families": [
+    "base"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(2, 1)|C(1, 1)@(1, 1)+K3(2, 1)@(1, 2)",
+   "output_slice": "(2, 1)",
+   "output_order": 3,
+   "inputs": [
+    "C(1,1)",
+    "K3(2,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     2
+    ]
+   ],
+   "count": 1,
+   "coef": 0.5,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod3:K3",
+   "families": [
+    "base",
+    "k3_21",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(2, 1)|C(1, 1)@(1, 1)+K3(2, 1)@(2, 1)",
+   "output_slice": "(2, 1)",
+   "output_order": 3,
+   "inputs": [
+    "C(1,1)",
+    "K3(2,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 0.5,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod3:K3",
+   "families": [
+    "base",
+    "k3_21",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(2, 1)|C(1, 1)@(1, 1)+K4(2, 2)@(2, 2)",
+   "output_slice": "(2, 1)",
+   "output_order": 3,
+   "inputs": [
+    "C(1,1)",
+    "K4(2,2)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     2
+    ]
+   ],
+   "count": 1,
+   "coef": 0.25,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod3:K4",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_22_exact"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(2, 1)|C(1, 1)@(1, 1)+K3(3,)@(3, 0)",
+   "output_slice": "(2, 1)",
+   "output_order": 3,
+   "inputs": [
+    "C(1,1)",
+    "K3(3,)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ],
+    [
+     3,
+     0
+    ]
+   ],
+   "count": 1,
+   "coef": 0.16666666666666666,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod3:K3",
+   "families": [
+    "base",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 77.2
+  },
+  {
+   "tid": "pK(2, 1)|C(1, 1)@(1, 1)+K4(4,)@(4, 0)",
+   "output_slice": "(2, 1)",
+   "output_order": 3,
+   "inputs": [
+    "C(1,1)",
+    "K4(4,)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ],
+    [
+     4,
+     0
+    ]
+   ],
+   "count": 1,
+   "coef": 0.041666666666666664,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod3:K4",
+   "families": [
+    "base",
+    "k4_diag"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(2, 1)|K3(2, 1)@(1, 2)",
+   "output_slice": "(2, 1)",
+   "output_order": 3,
+   "inputs": [
+    "K3(2,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     2
+    ]
+   ],
+   "count": 1,
+   "coef": 0.5,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": false,
+   "group": "prod3:K3",
+   "families": [
+    "base",
+    "k3_21",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(2, 1)|K4(3, 1)@(1, 3)",
+   "output_slice": "(2, 1)",
+   "output_order": 3,
+   "inputs": [
+    "K4(3,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     3
+    ]
+   ],
+   "count": 1,
+   "coef": 0.16666666666666666,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod3:K4",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_31"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(2, 1)|K3(2, 1)@(2, 1)",
+   "output_slice": "(2, 1)",
+   "output_order": 3,
+   "inputs": [
+    "K3(2,1)"
+   ],
+   "diagram": [
+    [
+     2,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 0.5,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": false,
+   "group": "prod3:K3",
+   "families": [
+    "base",
+    "k3_21",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(2, 1)|K4(2, 2)@(2, 2)",
+   "output_slice": "(2, 1)",
+   "output_order": 3,
+   "inputs": [
+    "K4(2,2)"
+   ],
+   "diagram": [
+    [
+     2,
+     2
+    ]
+   ],
+   "count": 1,
+   "coef": 0.25,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": true,
+   "group": "prod3:K4",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_22_exact"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(2, 1)|K4(3, 1)@(3, 1)",
+   "output_slice": "(2, 1)",
+   "output_order": 3,
+   "inputs": [
+    "K4(3,1)"
+   ],
+   "diagram": [
+    [
+     3,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 0.16666666666666666,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod3:K4",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_31"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(1, 1, 1)|C(1, 1)@(0, 1, 1)+C(1, 1)@(0, 1, 1)+C(1, 1)@(1, 0, 1)",
+   "output_slice": "(1, 1, 1)",
+   "output_order": 3,
+   "inputs": [
+    "C(1,1)",
+    "C(1,1)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     1,
+     1
+    ],
+    [
+     0,
+     1,
+     1
+    ],
+    [
+     1,
+     0,
+     1
+    ]
+   ],
+   "count": 6,
+   "coef": 0.5,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod3:C",
+   "families": [
+    "base",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 77.2
+  },
+  {
+   "tid": "pK(1, 1, 1)|C(1, 1)@(0, 1, 1)+C(1, 1)@(1, 0, 1)",
+   "output_slice": "(1, 1, 1)",
+   "output_order": 3,
+   "inputs": [
+    "C(1,1)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     1,
+     1
+    ],
+    [
+     1,
+     0,
+     1
+    ]
+   ],
+   "count": 3,
+   "coef": 1.0,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": false,
+   "group": "prod3:C",
+   "families": [
+    "base",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 77.2
+  },
+  {
+   "tid": "pK(1, 1, 1)|C(1, 1)@(0, 1, 1)+C(1, 1)@(1, 0, 1)+C(1, 1)@(1, 1, 0)",
+   "output_slice": "(1, 1, 1)",
+   "output_order": 3,
+   "inputs": [
+    "C(1,1)",
+    "C(1,1)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     1,
+     1
+    ],
+    [
+     1,
+     0,
+     1
+    ],
+    [
+     1,
+     1,
+     0
+    ]
+   ],
+   "count": 1,
+   "coef": 1.0,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod3:C",
+   "families": [
+    "base",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 77.2
+  },
+  {
+   "tid": "pK(1, 1, 1)|C(1, 1)@(0, 1, 1)+K3(2, 1)@(1, 0, 2)",
+   "output_slice": "(1, 1, 1)",
+   "output_order": 3,
+   "inputs": [
+    "C(1,1)",
+    "K3(2,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     1,
+     1
+    ],
+    [
+     1,
+     0,
+     2
+    ]
+   ],
+   "count": 6,
+   "coef": 0.5,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod3:K3",
+   "families": [
+    "base",
+    "k3_21",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(1, 1, 1)|C(1, 1)@(0, 1, 1)+K3(1, 1, 1)@(1, 1, 1)",
+   "output_slice": "(1, 1, 1)",
+   "output_order": 3,
+   "inputs": [
+    "C(1,1)",
+    "K3(1,1,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     1,
+     1
+    ],
+    [
+     1,
+     1,
+     1
+    ]
+   ],
+   "count": 3,
+   "coef": 1.0,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod3:K3",
+   "families": [
+    "base",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 77.2
+  },
+  {
+   "tid": "pK(1, 1, 1)|C(1, 1)@(0, 1, 1)+K3(2, 1)@(2, 0, 1)",
+   "output_slice": "(1, 1, 1)",
+   "output_order": 3,
+   "inputs": [
+    "C(1,1)",
+    "K3(2,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     1,
+     1
+    ],
+    [
+     2,
+     0,
+     1
+    ]
+   ],
+   "count": 6,
+   "coef": 0.5,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod3:K3",
+   "families": [
+    "base",
+    "k3_21",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(1, 1, 1)|C(1, 1)@(0, 1, 1)+K4(2, 2)@(2, 0, 2)",
+   "output_slice": "(1, 1, 1)",
+   "output_order": 3,
+   "inputs": [
+    "C(1,1)",
+    "K4(2,2)"
+   ],
+   "diagram": [
+    [
+     0,
+     1,
+     1
+    ],
+    [
+     2,
+     0,
+     2
+    ]
+   ],
+   "count": 6,
+   "coef": 0.25,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod3:K4",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_22_exact"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(1, 1, 1)|K3(1, 1, 1)@(1, 1, 1)",
+   "output_slice": "(1, 1, 1)",
+   "output_order": 3,
+   "inputs": [
+    "K3(1,1,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     1,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 1.0,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": false,
+   "group": "prod3:K3",
+   "families": [
+    "base",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 77.2
+  },
+  {
+   "tid": "pK(1, 1, 1)|K4(2, 1, 1)@(1, 1, 2)",
+   "output_slice": "(1, 1, 1)",
+   "output_order": 3,
+   "inputs": [
+    "K4(2,1,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     1,
+     2
+    ]
+   ],
+   "count": 3,
+   "coef": 0.5,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod3:K4",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_211"
+   ],
+   "standalone_billed_units_n1024": 199.1
+  },
+  {
+   "tid": "pK(4,)|",
+   "output_slice": "(4,)",
+   "output_order": 4,
+   "inputs": [],
+   "diagram": [],
+   "count": 1,
+   "coef": 1.0,
+   "cost": 0,
+   "order_in_1_over_n": 0.0,
+   "coherent": true,
+   "group": "backbone",
+   "families": [
+    "base"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(4,)|K3(3,)@(3,)",
+   "output_slice": "(4,)",
+   "output_order": 4,
+   "inputs": [
+    "K3(3,)"
+   ],
+   "diagram": [
+    [
+     3
+    ]
+   ],
+   "count": 1,
+   "coef": 0.16666666666666666,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": false,
+   "group": "prod4:K3",
+   "families": [
+    "base",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 77.2
+  },
+  {
+   "tid": "pK(4,)|K4(4,)@(4,)",
+   "output_slice": "(4,)",
+   "output_order": 4,
+   "inputs": [
+    "K4(4,)"
+   ],
+   "diagram": [
+    [
+     4
+    ]
+   ],
+   "count": 1,
+   "coef": 0.041666666666666664,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": true,
+   "group": "prod4:K4",
+   "families": [
+    "base",
+    "k4_diag"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(3, 1)|K3(3,)@(0, 3)+C(1, 1)@(1, 1)",
+   "output_slice": "(3, 1)",
+   "output_order": 4,
+   "inputs": [
+    "K3(3,)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     3
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 0.16666666666666666,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K3",
+   "families": [
+    "base",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 77.2
+  },
+  {
+   "tid": "pK(3, 1)|K4(4,)@(0, 4)+C(1, 1)@(1, 1)",
+   "output_slice": "(3, 1)",
+   "output_order": 4,
+   "inputs": [
+    "K4(4,)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     4
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 0.041666666666666664,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K4",
+   "families": [
+    "base",
+    "k4_diag"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(3, 1)|C(1, 1)@(1, 1)",
+   "output_slice": "(3, 1)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 1.0,
+   "cost": 1,
+   "order_in_1_over_n": 0.5,
+   "coherent": false,
+   "group": "prod4:C",
+   "families": [
+    "base"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(3, 1)|C(1, 1)@(1, 1)+C(1, 1)@(1, 1)",
+   "output_slice": "(3, 1)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 0.5,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": true,
+   "group": "prod4:C",
+   "families": [
+    "base"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(3, 1)|C(1, 1)@(1, 1)+C(1, 1)@(1, 1)+C(1, 1)@(1, 1)",
+   "output_slice": "(3, 1)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "C(1,1)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 0.16666666666666666,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:C",
+   "families": [
+    "base"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(3, 1)|C(1, 1)@(1, 1)+K3(2, 1)@(1, 2)",
+   "output_slice": "(3, 1)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "K3(2,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     2
+    ]
+   ],
+   "count": 1,
+   "coef": 0.5,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K3",
+   "families": [
+    "base",
+    "k3_21",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(3, 1)|C(1, 1)@(1, 1)+K3(2, 1)@(2, 1)",
+   "output_slice": "(3, 1)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "K3(2,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 0.5,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K3",
+   "families": [
+    "base",
+    "k3_21",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(3, 1)|C(1, 1)@(1, 1)+K4(2, 2)@(2, 2)",
+   "output_slice": "(3, 1)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "K4(2,2)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     2
+    ]
+   ],
+   "count": 1,
+   "coef": 0.25,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K4",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_22_exact"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(3, 1)|C(1, 1)@(1, 1)+K3(3,)@(3, 0)",
+   "output_slice": "(3, 1)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "K3(3,)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ],
+    [
+     3,
+     0
+    ]
+   ],
+   "count": 1,
+   "coef": 0.16666666666666666,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K3",
+   "families": [
+    "base",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 77.2
+  },
+  {
+   "tid": "pK(3, 1)|C(1, 1)@(1, 1)+K4(4,)@(4, 0)",
+   "output_slice": "(3, 1)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "K4(4,)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ],
+    [
+     4,
+     0
+    ]
+   ],
+   "count": 1,
+   "coef": 0.041666666666666664,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K4",
+   "families": [
+    "base",
+    "k4_diag"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(3, 1)|K3(2, 1)@(1, 2)",
+   "output_slice": "(3, 1)",
+   "output_order": 4,
+   "inputs": [
+    "K3(2,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     2
+    ]
+   ],
+   "count": 1,
+   "coef": 0.5,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": false,
+   "group": "prod4:K3",
+   "families": [
+    "base",
+    "k3_21",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(3, 1)|K4(3, 1)@(1, 3)",
+   "output_slice": "(3, 1)",
+   "output_order": 4,
+   "inputs": [
+    "K4(3,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     3
+    ]
+   ],
+   "count": 1,
+   "coef": 0.16666666666666666,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K4",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_31"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(3, 1)|K3(2, 1)@(2, 1)",
+   "output_slice": "(3, 1)",
+   "output_order": 4,
+   "inputs": [
+    "K3(2,1)"
+   ],
+   "diagram": [
+    [
+     2,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 0.5,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": false,
+   "group": "prod4:K3",
+   "families": [
+    "base",
+    "k3_21",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(3, 1)|K4(2, 2)@(2, 2)",
+   "output_slice": "(3, 1)",
+   "output_order": 4,
+   "inputs": [
+    "K4(2,2)"
+   ],
+   "diagram": [
+    [
+     2,
+     2
+    ]
+   ],
+   "count": 1,
+   "coef": 0.25,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": true,
+   "group": "prod4:K4",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_22_exact"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(3, 1)|K4(3, 1)@(3, 1)",
+   "output_slice": "(3, 1)",
+   "output_order": 4,
+   "inputs": [
+    "K4(3,1)"
+   ],
+   "diagram": [
+    [
+     3,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 0.16666666666666666,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K4",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_31"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(2, 2)|K3(3,)@(0, 3)+C(1, 1)@(1, 1)",
+   "output_slice": "(2, 2)",
+   "output_order": 4,
+   "inputs": [
+    "K3(3,)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     3
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "count": 2,
+   "coef": 0.16666666666666666,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K3",
+   "families": [
+    "base",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 77.2
+  },
+  {
+   "tid": "pK(2, 2)|K4(4,)@(0, 4)+C(1, 1)@(1, 1)",
+   "output_slice": "(2, 2)",
+   "output_order": 4,
+   "inputs": [
+    "K4(4,)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     4
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "count": 2,
+   "coef": 0.041666666666666664,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K4",
+   "families": [
+    "base",
+    "k4_diag"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(2, 2)|C(1, 1)@(1, 1)",
+   "output_slice": "(2, 2)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 1.0,
+   "cost": 1,
+   "order_in_1_over_n": 0.5,
+   "coherent": false,
+   "group": "prod4:C",
+   "families": [
+    "base"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(2, 2)|C(1, 1)@(1, 1)+C(1, 1)@(1, 1)",
+   "output_slice": "(2, 2)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 0.5,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": true,
+   "group": "prod4:C",
+   "families": [
+    "base"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(2, 2)|C(1, 1)@(1, 1)+C(1, 1)@(1, 1)+C(1, 1)@(1, 1)",
+   "output_slice": "(2, 2)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "C(1,1)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 0.16666666666666666,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:C",
+   "families": [
+    "base"
+   ],
+   "standalone_billed_units_n1024": 16.2
+  },
+  {
+   "tid": "pK(2, 2)|C(1, 1)@(1, 1)+K3(2, 1)@(1, 2)",
+   "output_slice": "(2, 2)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "K3(2,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     2
+    ]
+   ],
+   "count": 2,
+   "coef": 0.5,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K3",
+   "families": [
+    "base",
+    "k3_21",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(2, 2)|C(1, 1)@(1, 1)+K4(2, 2)@(2, 2)",
+   "output_slice": "(2, 2)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "K4(2,2)"
+   ],
+   "diagram": [
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     2
+    ]
+   ],
+   "count": 1,
+   "coef": 0.25,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K4",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_22_exact"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(2, 2)|K3(2, 1)@(1, 2)",
+   "output_slice": "(2, 2)",
+   "output_order": 4,
+   "inputs": [
+    "K3(2,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     2
+    ]
+   ],
+   "count": 2,
+   "coef": 0.5,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": false,
+   "group": "prod4:K3",
+   "families": [
+    "base",
+    "k3_21",
+    "k3_legs"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(2, 2)|K4(3, 1)@(1, 3)",
+   "output_slice": "(2, 2)",
+   "output_order": 4,
+   "inputs": [
+    "K4(3,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     3
+    ]
+   ],
+   "count": 2,
+   "coef": 0.16666666666666666,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K4",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_31"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(2, 2)|K4(2, 2)@(2, 2)",
+   "output_slice": "(2, 2)",
+   "output_order": 4,
+   "inputs": [
+    "K4(2,2)"
+   ],
+   "diagram": [
+    [
+     2,
+     2
+    ]
+   ],
+   "count": 1,
+   "coef": 0.25,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": true,
+   "group": "prod4:K4",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_22_exact"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(2, 1, 1)|C(1, 1)@(0, 1, 1)+C(1, 1)@(0, 1, 1)+C(1, 1)@(1, 0, 1)",
+   "output_slice": "(2, 1, 1)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "C(1,1)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     1,
+     1
+    ],
+    [
+     0,
+     1,
+     1
+    ],
+    [
+     1,
+     0,
+     1
+    ]
+   ],
+   "count": 2,
+   "coef": 0.5,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:C",
+   "families": [
+    "base",
+    "k4_top_newborn"
+   ],
+   "standalone_billed_units_n1024": 77.2
+  },
+  {
+   "tid": "pK(2, 1, 1)|C(1, 1)@(0, 1, 1)+C(1, 1)@(1, 0, 1)",
+   "output_slice": "(2, 1, 1)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     1,
+     1
+    ],
+    [
+     1,
+     0,
+     1
+    ]
+   ],
+   "count": 2,
+   "coef": 1.0,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": false,
+   "group": "prod4:C",
+   "families": [
+    "base",
+    "k4_top_newborn"
+   ],
+   "standalone_billed_units_n1024": 77.2
+  },
+  {
+   "tid": "pK(2, 1, 1)|C(1, 1)@(0, 1, 1)+C(1, 1)@(1, 0, 1)+C(1, 1)@(1, 0, 1)",
+   "output_slice": "(2, 1, 1)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "C(1,1)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     1,
+     1
+    ],
+    [
+     1,
+     0,
+     1
+    ],
+    [
+     1,
+     0,
+     1
+    ]
+   ],
+   "count": 2,
+   "coef": 0.5,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:C",
+   "families": [
+    "base",
+    "k4_top_newborn"
+   ],
+   "standalone_billed_units_n1024": 77.2
+  },
+  {
+   "tid": "pK(2, 1, 1)|C(1, 1)@(0, 1, 1)+C(1, 1)@(1, 0, 1)+C(1, 1)@(1, 1, 0)",
+   "output_slice": "(2, 1, 1)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "C(1,1)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     1,
+     1
+    ],
+    [
+     1,
+     0,
+     1
+    ],
+    [
+     1,
+     1,
+     0
+    ]
+   ],
+   "count": 1,
+   "coef": 1.0,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:C",
+   "families": [
+    "base",
+    "k4_top_newborn"
+   ],
+   "standalone_billed_units_n1024": 77.2
+  },
+  {
+   "tid": "pK(2, 1, 1)|C(1, 1)@(0, 1, 1)+K3(2, 1)@(1, 0, 2)",
+   "output_slice": "(2, 1, 1)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "K3(2,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     1,
+     1
+    ],
+    [
+     1,
+     0,
+     2
+    ]
+   ],
+   "count": 2,
+   "coef": 0.5,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K3",
+   "families": [
+    "base",
+    "k3_21",
+    "k3_legs",
+    "k4_top_newborn"
+   ],
+   "standalone_billed_units_n1024": 199.1
+  },
+  {
+   "tid": "pK(2, 1, 1)|C(1, 1)@(0, 1, 1)+K3(1, 1, 1)@(1, 1, 1)",
+   "output_slice": "(2, 1, 1)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "K3(1,1,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     1,
+     1
+    ],
+    [
+     1,
+     1,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 1.0,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K3",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_top_newborn"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(2, 1, 1)|C(1, 1)@(0, 1, 1)+K3(2, 1)@(2, 0, 1)",
+   "output_slice": "(2, 1, 1)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "K3(2,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     1,
+     1
+    ],
+    [
+     2,
+     0,
+     1
+    ]
+   ],
+   "count": 2,
+   "coef": 0.5,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K3",
+   "families": [
+    "base",
+    "k3_21",
+    "k3_legs",
+    "k4_top_newborn"
+   ],
+   "standalone_billed_units_n1024": 199.1
+  },
+  {
+   "tid": "pK(2, 1, 1)|C(1, 1)@(0, 1, 1)+K4(2, 2)@(2, 0, 2)",
+   "output_slice": "(2, 1, 1)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "K4(2,2)"
+   ],
+   "diagram": [
+    [
+     0,
+     1,
+     1
+    ],
+    [
+     2,
+     0,
+     2
+    ]
+   ],
+   "count": 2,
+   "coef": 0.25,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K4",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_22_exact",
+    "k4_top_newborn"
+   ],
+   "standalone_billed_units_n1024": 199.1
+  },
+  {
+   "tid": "pK(2, 1, 1)|K3(2, 1)@(0, 1, 2)+C(1, 1)@(1, 0, 1)",
+   "output_slice": "(2, 1, 1)",
+   "output_order": 4,
+   "inputs": [
+    "K3(2,1)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     1,
+     2
+    ],
+    [
+     1,
+     0,
+     1
+    ]
+   ],
+   "count": 2,
+   "coef": 0.5,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K3",
+   "families": [
+    "base",
+    "k3_21",
+    "k3_legs",
+    "k4_top_newborn"
+   ],
+   "standalone_billed_units_n1024": 199.1
+  },
+  {
+   "tid": "pK(2, 1, 1)|K3(2, 1)@(0, 1, 2)+C(1, 1)@(1, 1, 0)",
+   "output_slice": "(2, 1, 1)",
+   "output_order": 4,
+   "inputs": [
+    "K3(2,1)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     1,
+     2
+    ],
+    [
+     1,
+     1,
+     0
+    ]
+   ],
+   "count": 2,
+   "coef": 0.5,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K3",
+   "families": [
+    "base",
+    "k3_21",
+    "k3_legs",
+    "k4_top_newborn"
+   ],
+   "standalone_billed_units_n1024": 199.1
+  },
+  {
+   "tid": "pK(2, 1, 1)|K4(2, 2)@(0, 2, 2)+C(1, 1)@(1, 0, 1)",
+   "output_slice": "(2, 1, 1)",
+   "output_order": 4,
+   "inputs": [
+    "K4(2,2)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     2,
+     2
+    ],
+    [
+     1,
+     0,
+     1
+    ]
+   ],
+   "count": 2,
+   "coef": 0.25,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K4",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_22_exact",
+    "k4_top_newborn"
+   ],
+   "standalone_billed_units_n1024": 199.1
+  },
+  {
+   "tid": "pK(2, 1, 1)|C(1, 1)@(1, 0, 1)+C(1, 1)@(1, 0, 1)+C(1, 1)@(1, 1, 0)",
+   "output_slice": "(2, 1, 1)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "C(1,1)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     0,
+     1
+    ],
+    [
+     1,
+     0,
+     1
+    ],
+    [
+     1,
+     1,
+     0
+    ]
+   ],
+   "count": 2,
+   "coef": 0.5,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:C",
+   "families": [
+    "base",
+    "k4_top_newborn"
+   ],
+   "standalone_billed_units_n1024": 77.2
+  },
+  {
+   "tid": "pK(2, 1, 1)|C(1, 1)@(1, 0, 1)+C(1, 1)@(1, 1, 0)",
+   "output_slice": "(2, 1, 1)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     0,
+     1
+    ],
+    [
+     1,
+     1,
+     0
+    ]
+   ],
+   "count": 1,
+   "coef": 1.0,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": false,
+   "group": "prod4:C",
+   "families": [
+    "base",
+    "k4_top_newborn"
+   ],
+   "standalone_billed_units_n1024": 77.2
+  },
+  {
+   "tid": "pK(2, 1, 1)|C(1, 1)@(1, 0, 1)+K3(1, 1, 1)@(1, 1, 1)",
+   "output_slice": "(2, 1, 1)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "K3(1,1,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     0,
+     1
+    ],
+    [
+     1,
+     1,
+     1
+    ]
+   ],
+   "count": 2,
+   "coef": 1.0,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K3",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_top_newborn"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(2, 1, 1)|C(1, 1)@(1, 0, 1)+K3(2, 1)@(1, 2, 0)",
+   "output_slice": "(2, 1, 1)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "K3(2,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     0,
+     1
+    ],
+    [
+     1,
+     2,
+     0
+    ]
+   ],
+   "count": 2,
+   "coef": 0.5,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K3",
+   "families": [
+    "base",
+    "k3_21",
+    "k3_legs",
+    "k4_top_newborn"
+   ],
+   "standalone_billed_units_n1024": 199.1
+  },
+  {
+   "tid": "pK(2, 1, 1)|C(1, 1)@(1, 0, 1)+K3(2, 1)@(2, 1, 0)",
+   "output_slice": "(2, 1, 1)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "K3(2,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     0,
+     1
+    ],
+    [
+     2,
+     1,
+     0
+    ]
+   ],
+   "count": 2,
+   "coef": 0.5,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K3",
+   "families": [
+    "base",
+    "k3_21",
+    "k3_legs",
+    "k4_top_newborn"
+   ],
+   "standalone_billed_units_n1024": 199.1
+  },
+  {
+   "tid": "pK(2, 1, 1)|C(1, 1)@(1, 0, 1)+K4(2, 2)@(2, 2, 0)",
+   "output_slice": "(2, 1, 1)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "K4(2,2)"
+   ],
+   "diagram": [
+    [
+     1,
+     0,
+     1
+    ],
+    [
+     2,
+     2,
+     0
+    ]
+   ],
+   "count": 2,
+   "coef": 0.25,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K4",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_22_exact",
+    "k4_top_newborn"
+   ],
+   "standalone_billed_units_n1024": 199.1
+  },
+  {
+   "tid": "pK(2, 1, 1)|K3(1, 1, 1)@(1, 1, 1)",
+   "output_slice": "(2, 1, 1)",
+   "output_order": 4,
+   "inputs": [
+    "K3(1,1,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     1,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 1.0,
+   "cost": 2,
+   "order_in_1_over_n": 1.0,
+   "coherent": false,
+   "group": "prod4:K3",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_top_newborn"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(2, 1, 1)|K4(2, 1, 1)@(1, 1, 2)",
+   "output_slice": "(2, 1, 1)",
+   "output_order": 4,
+   "inputs": [
+    "K4(2,1,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     1,
+     2
+    ]
+   ],
+   "count": 2,
+   "coef": 0.5,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K4",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_211",
+    "k4_top_newborn"
+   ],
+   "standalone_billed_units_n1024": 260.0
+  },
+  {
+   "tid": "pK(2, 1, 1)|K4(2, 1, 1)@(2, 1, 1)",
+   "output_slice": "(2, 1, 1)",
+   "output_order": 4,
+   "inputs": [
+    "K4(2,1,1)"
+   ],
+   "diagram": [
+    [
+     2,
+     1,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 0.5,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K4",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_211",
+    "k4_top_newborn"
+   ],
+   "standalone_billed_units_n1024": 260.0
+  },
+  {
+   "tid": "pK(1, 1, 1, 1)|C(1, 1)@(0, 0, 1, 1)+C(1, 1)@(0, 1, 0, 1)+C(1, 1)@(1, 0, 0, 1)",
+   "output_slice": "(1, 1, 1, 1)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "C(1,1)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     0,
+     1,
+     0,
+     1
+    ],
+    [
+     1,
+     0,
+     0,
+     1
+    ]
+   ],
+   "count": 4,
+   "coef": 1.0,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:C",
+   "families": [
+    "base",
+    "k4_top_newborn"
+   ],
+   "standalone_billed_units_n1024": 77.2
+  },
+  {
+   "tid": "pK(1, 1, 1, 1)|C(1, 1)@(0, 0, 1, 1)+C(1, 1)@(0, 1, 0, 1)+C(1, 1)@(1, 0, 1, 0)",
+   "output_slice": "(1, 1, 1, 1)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "C(1,1)",
+    "C(1,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     0,
+     1,
+     0,
+     1
+    ],
+    [
+     1,
+     0,
+     1,
+     0
+    ]
+   ],
+   "count": 12,
+   "coef": 1.0,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:C",
+   "families": [
+    "base",
+    "k4_top_newborn"
+   ],
+   "standalone_billed_units_n1024": 77.2
+  },
+  {
+   "tid": "pK(1, 1, 1, 1)|C(1, 1)@(0, 0, 1, 1)+K3(1, 1, 1)@(1, 1, 0, 1)",
+   "output_slice": "(1, 1, 1, 1)",
+   "output_order": 4,
+   "inputs": [
+    "C(1,1)",
+    "K3(1,1,1)"
+   ],
+   "diagram": [
+    [
+     0,
+     0,
+     1,
+     1
+    ],
+    [
+     1,
+     1,
+     0,
+     1
+    ]
+   ],
+   "count": 12,
+   "coef": 1.0,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K3",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_top_newborn"
+   ],
+   "standalone_billed_units_n1024": 138.1
+  },
+  {
+   "tid": "pK(1, 1, 1, 1)|K4(1, 1, 1, 1)@(1, 1, 1, 1)",
+   "output_slice": "(1, 1, 1, 1)",
+   "output_order": 4,
+   "inputs": [
+    "K4(1,1,1,1)"
+   ],
+   "diagram": [
+    [
+     1,
+     1,
+     1,
+     1
+    ]
+   ],
+   "count": 1,
+   "coef": 1.0,
+   "cost": 3,
+   "order_in_1_over_n": 1.5,
+   "coherent": false,
+   "group": "prod4:K4",
+   "families": [
+    "base",
+    "k3_legs",
+    "k4_211",
+    "k4_top_newborn"
+   ],
+   "standalone_billed_units_n1024": 260.0
+  }
+ ],
+ "provenance": {
+  "commit": "107af679235e65c670b6c0178fa8b8f54e8eb65b",
+  "dirty": true,
+  "versions": {
+   "numpy": "2.4.6",
+   "scipy": "1.18.1",
+   "flopscope": "0.12.3",
+   "whestbench": "0.16.1",
+   "opt-einsum": "3.4.0",
+   "threadpoolctl": "3.7.0"
+  },
+  "python": "3.13.16",
+  "host": "vm",
+  "cpu_count": 4,
+  "utc": "2026-10-17T05:59:56Z"
+ }
+}

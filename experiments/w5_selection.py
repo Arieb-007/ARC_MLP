@@ -70,7 +70,7 @@ def main():
     ap.add_argument("--n", type=int, required=True)
     ap.add_argument("--L", type=int, default=16)
     ap.add_argument("--seeds", default="0-9")
-    ap.add_argument("--N", type=float, default=2e7)
+    ap.add_argument("--N", type=float, default=4e6)
     ap.add_argument("--outdir", default="data/w5")
     a = ap.parse_args()
     lo, hi = (int(x) for x in a.seeds.split("-"))

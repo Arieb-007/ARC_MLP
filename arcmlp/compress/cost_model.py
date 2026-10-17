@@ -18,7 +18,9 @@ factored, multi-index object). Within the cap all per-term work is elementwise /
   k4_31             (P o P o P) diag(b) P^T          (1 / source-layer)     S   (+ k3_legs)
   k4_211            three-index slice, two contractions per source-layer   2S  (+ k3_legs)
   k4_top_newborn    new kappa4 leg family for (2,1,1)/(1,1,1,1) outputs     S
-  k4_coherent       rank-one (2,2) + W^4 b diagonal                         0
+  k4_diag           (4,) slice (W o W o W o W) b from per-neuron b            0
+  k4_coherent       rank-one (2,2) (4 bbar/n + 4 Bbar)                      0
+  k4_22_layer       exact (2,2) of the current layer's diagonal source only  L (one unit per layer)
   (3,)/(4,) diagonals, covariance edges, rank-one terms                     0
 Calibration [measured externally, 504aldo]: V29 implements base + k3_legs + k3_21 with an exact
 7 -> 4 collapse (4 units per source-layer, 480 raw) and bills 260 units after shared-basis
@@ -38,7 +40,7 @@ def source_layers(L=L_DEFAULT):
 def family_cost(fam, L=L_DEFAULT):
     S = source_layers(L)
     return {"base": 2 * L, "k3_legs": S, "k3_21": S, "k4_22_exact": S, "k4_31": S, "k4_211": 2 * S,
-            "k4_top_newborn": S, "k4_coherent": 0}[fam]
+            "k4_top_newborn": S, "k4_coherent": 0, "k4_diag": 0, "k4_22_layer": L}[fam]
 
 
 def term_families(term):
@@ -52,9 +54,12 @@ def term_families(term):
             if st == (2, 1):
                 fams.add("k3_21")
         elif k == 4:
-            fams.add("k3_legs")
-            fams.add({(4,): "k4_coherent", (2, 2): "k4_22_exact", (3, 1): "k4_31",
-                      (2, 1, 1): "k4_211", (1, 1, 1, 1): "k4_211"}[st])
+            if st == (4,):
+                fams.add("k4_diag")            # (W o W o W o W) b: O(n^2), no legs
+            else:
+                fams.add("k3_legs")            # kappa4 sources ride on the kappa3 legs
+                fams.add({(2, 2): "k4_22_exact", (3, 1): "k4_31", (2, 1, 1): "k4_211",
+                          (1, 1, 1, 1): "k4_211"}[st])
     order = sum(term.p)
     if order == 3 and len(term.p) == 3:
         fams.add("k3_legs")                    # writes a kappa3 source
