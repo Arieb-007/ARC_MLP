@@ -74,3 +74,25 @@ def selection_cost(terms, L=L_DEFAULT, billed=True):
         fams |= term_families(t)
     raw = sum(family_cost(f, L) for f in fams)
     return (ENG * raw if billed else raw), sorted(fams)
+
+
+# W5 features (experiments/w5_selection.py): the families a feature needs.  'light' kappa4 features are
+# the coherent O(n^2) values; 'dense' kappa4 features read the exact transported kappa4 of z, which
+# needs the whole factored kappa4 machinery (an upper-bound model: any exact kappa4 read is billed for
+# all kappa4 leg families).
+K4_ALL = ["k3_legs", "k4_22_exact", "k4_31", "k4_211", "k4_top_newborn"]
+FEATURE_FAMILIES = {
+    "light": {"Cpair": [], "cap3": [], "K3(3,)": ["k3_legs"], "K3(1,1,1)": ["k3_legs"],
+              "K3(2,1)": ["k3_legs", "k3_21"], "K4(4,)": ["k4_diag"], "K4(2,2)": ["k4_coherent"]},
+    "dense": {"Cpair": [], "cap3": [], "K3(3,)": ["k3_legs"], "K3(1,1,1)": ["k3_legs"],
+              "K3(2,1)": ["k3_legs", "k3_21"], "K4(4,)": K4_ALL, "K4(2,2)": K4_ALL, "K4(3,1)": K4_ALL,
+              "K4(2,1,1)": K4_ALL, "K4(1,1,1,1)": K4_ALL},
+}
+
+
+def feature_cost(feats, tier="light", L=L_DEFAULT, billed=True):
+    fams = {"base"}
+    for f in feats:
+        fams |= set(FEATURE_FAMILIES[tier][f])
+    raw = sum(family_cost(f, L) for f in fams)
+    return ENG * raw if billed else raw
