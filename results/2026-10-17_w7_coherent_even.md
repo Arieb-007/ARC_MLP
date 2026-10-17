@@ -1,0 +1,386 @@
+# W7 — coherent even-order cumulant terms (2026-10-17)
+
+> LLM-generated record (Claude Code). Runner `experiments/w7_coherent_even.py`, aggregation
+> `experiments/w7_report.py`, theory `docs/notes/w7_coherent_even_orders.md`. Weights: W ~ N(0, 2/n) from
+> `default_rng(seed)`; MC truth N = 4e6 per network, MC seed 70000 + 100 L + seed (cached in data/mc).
+
+**Falsifier (written before running).** W7 is not a win if at n = 128 '+κ4 coherent' recovers < 50% of the
+final-layer MSE gap between K=3 and dense '+all κ4 slices' at the same diagram cap (bootstrap CI over
+networks excluding 50%); κ6/κ8 are reported either way.
+
+MSE = debiased final-layer MSE (MC floor subtracted); mean over networks with 95% bootstrap CI.
+
+## n = 32, L = 8 (10 networks, seeds 0–9; mean MC floor 8.5e-08)
+
+| variant | mean MSE [95% CI] | ratio to K3c2 [95% CI] | mean per-net SE |
+|---|---|---|---|
+| K3c2 | 3.570e-04 [2.15e-04, 5.19e-04] | 1.000 [1.000, 1.000] | 5.9e-06 |
+| coh2 | 4.036e-03 [1.40e-03, 8.48e-03] | 11.306 [3.480, 29.694] | 8.4e-06 |
+| ex22 | 4.161e-03 [1.34e-03, 9.14e-03] | 11.655 [3.220, 32.052] | 8.3e-06 |
+| ex4c2 | 2.291e-03 [8.70e-04, 4.63e-03] | 6.417 [2.140, 16.396] | 7.2e-06 |
+| exallc2 | 2.180e-03 [8.34e-04, 4.46e-03] | 6.107 [2.039, 15.511] | 7.8e-06 |
+| K4c2 | 1.773e-03 [9.84e-04, 2.73e-03] | 4.966 [2.752, 8.467] | 7.7e-06 |
+| K3c3 | 4.674e-04 [2.60e-04, 7.22e-04] | 1.309 [1.029, 1.532] | 7.6e-06 |
+| coh3 | 4.084e-02 [1.31e-02, 7.69e-02] | 114.390 [38.801, 260.109] | 1.3e-05 |
+| ex4c3 | 1.581e-02 [5.06e-03, 3.25e-02] | 44.298 [12.261, 122.945] | 1.0e-05 |
+| exallc3 | 1.204e-02 [5.55e-03, 1.92e-02] | 33.739 [13.130, 73.619] | 1.1e-05 |
+| K4c3 | 1.442e-03 [3.52e-04, 3.41e-03] | 4.039 [0.943, 10.192] | 3.5e-06 |
+| coh2_k6 | 4.268e+01 [1.57e-02, 1.28e+02] | 119558.662 [39.211, 459316.918] | 4.5e-05 |
+| coh2_k6_k8 | 2.454e+01 [1.51e-02, 7.36e+01] | 68733.935 [36.692, 271896.695] | 3.7e-05 |
+| coh2_k3sq | 3.522e-03 [1.51e-03, 6.57e-03] | 9.867 [3.792, 22.960] | 9.4e-06 |
+| ex4c2_k6 | 9.443e+00 [6.63e-03, 2.83e+01] | 26450.076 [15.720, 100791.965] | 2.4e-05 |
+| ex4c2_k6_k8 | 4.246e-01 [6.39e-03, 1.25e+00] | 1189.278 [14.602, 4592.658] | 1.1e-05 |
+
+Gap recovery at cap 2: (K3 − coh2)/(K3 − K4 dense) = **2.60** [0.92, 5.18] (mean gap -1.42e-03).
+
+Gap recovery at cap 2: (K3 − ex4c2)/(K3 − K4 dense) = **1.37** [0.43, 2.74] (mean gap -1.42e-03).
+
+Gap recovery at cap 2: (K3 − exallc2)/(K3 − K4 dense) = **1.29** [0.37, 2.65] (mean gap -1.42e-03).
+
+Gap recovery at cap 3: (K3 − coh3)/(K3 − K4 dense) = **41.43** [-1469.63, 1634.44] (mean gap -9.74e-04).
+
+Gap recovery at cap 3: (K3 − ex4c3)/(K3 − K4 dense) = **15.75** [-387.99, 536.30] (mean gap -9.74e-04).
+
+Gap recovery at cap 3: (K3 − exallc3)/(K3 − K4 dense) = **11.88** [-350.49, 389.24] (mean gap -9.74e-04).
+
+Recovery of the gap between the standard K=3 (cap 2) and the paper's K=4 (dense, cap 3), mean gap -1.08e-03:
+(K3c2 − coh2)/(K3c2 − K4c3) = 3.39 [-36.95, 91.40]; 
+(K3c2 − ex22)/(K3c2 − K4c3) = 3.51 [-45.38, 122.02]; 
+(K3c2 − ex4c2)/(K3c2 − K4c3) = 1.78 [-20.78, 51.14]; 
+(K3c2 − exallc2)/(K3c2 − K4c3) = 1.68 [-21.39, 47.82]; 
+(K3c2 − K4c2)/(K3c2 − K4c3) = 1.31 [-13.65, 26.60]; 
+(K3c2 − K3c3)/(K3c2 − K4c3) = 0.10 [-1.89, 3.11]; 
+(K3c2 − coh3)/(K3c2 − K4c3) = 37.32 [-601.20, 1089.64]; 
+(K3c2 − ex4c3)/(K3c2 − K4c3) = 14.25 [-85.09, 278.33]; 
+(K3c2 − exallc3)/(K3c2 − K4c3) = 10.77 [-98.96, 241.92]; 
+
+K4c3 worse than K3c2 on 7/10 networks; MSE > 1e-2 (diverged) on 1/10.
+
+coh2_k6: RMS of the added final-layer mean correction = 2.17e+00 (its square 4.7e+00 vs MC floor 8.5e-08).
+
+coh2_k6_k8: RMS of the added final-layer mean correction = 1.67e+00 (its square 2.8e+00 vs MC floor 8.5e-08).
+
+coh2_k3sq: RMS of the added final-layer mean correction = 1.05e-02 (its square 1.1e-04 vs MC floor 8.5e-08).
+
+ex4c2_k6: RMS of the added final-layer mean correction = 1.03e+00 (its square 1.1e+00 vs MC floor 8.5e-08).
+
+ex4c2_k6_k8: RMS of the added final-layer mean correction = 2.81e-01 (its square 7.9e-02 vs MC floor 8.5e-08).
+
+Per-layer coherent κ4 constant β_l = 4 b̄/n + 4 B̄ (z-side, mean over networks) and b̄_l:
+
+| layer | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+|---|---|---|---|---|---|---|---|---|
+| β | 0.00e+00 | 1.95e-01 | 2.22e-01 | 2.09e-01 | 1.99e-01 | 1.61e-01 | 1.30e-01 | 7.40e-02 |
+| b̄ | 0.000 | 1.157 | 0.570 | 0.466 | 0.419 | 0.344 | 0.339 | 0.330 |
+
+## n = 32, L = 16 (10 networks, seeds 0–9; mean MC floor 5.6e-08)
+
+| variant | mean MSE [95% CI] | ratio to K3c2 [95% CI] | mean per-net SE |
+|---|---|---|---|
+| K3c2 | 3.003e-03 [9.42e-04, 6.25e-03] | 1.000 [1.000, 1.000] | 8.7e-06 |
+| coh2 | 4.256e-01 [1.39e-01, 7.88e-01] | 141.750 [31.430, 593.542] | 8.6e-05 |
+| ex22 | 1.474e+01 [8.49e-02, 4.02e+01] | 4909.457 [20.930, 32412.893] | 2.6e-04 |
+| ex4c2 | 4.961e-01 [3.80e-02, 1.16e+00] | 165.215 [11.790, 623.399] | 6.7e-05 |
+| exallc2 | 7.633e-01 [3.87e-02, 2.07e+00] | 254.204 [12.384, 1514.106] | 3.8e-05 |
+| K4c2 | 6.152e-01 [1.40e-01, 1.23e+00] | 204.882 [37.154, 888.335] | 9.0e-05 |
+| K3c3 | 9.040e-04 [4.81e-04, 1.52e-03] | 0.301 [0.123, 1.049] | 7.5e-06 |
+| coh3 | 1.230e+08 [1.06e+03, 3.69e+08] | 40978034352.273 [805712.294, 222461502327.843] | 2.9e-01 |
+| ex4c3 | 2.420e+03 [1.54e+01, 7.03e+03] | 805912.950 [11118.935, 5309502.925] | 1.5e-03 |
+| exallc3 | 6.537e+04 [2.61e+00, 1.96e+05] | 21770469.511 [608.098, 121862800.076] | 8.6e-03 |
+| K4c3 | 4.769e+01 [6.63e+00, 1.12e+02] | 15882.201 [3453.337, 60244.206] | 1.5e-03 |
+| coh2_k6 | nan [nan, nan] | nan [nan, nan] | nan |
+| coh2_k6_k8 | nan [nan, nan] | nan [nan, nan] | nan |
+| coh2_k3sq | nan [nan, nan] | nan [nan, nan] | nan |
+| ex4c2_k6 | nan [nan, nan] | nan [nan, nan] | nan |
+| ex4c2_k6_k8 | nan [nan, nan] | nan [nan, nan] | nan |
+
+Gap recovery at cap 2: (K3 − coh2)/(K3 − K4 dense) = **0.69** [0.18, 3.31] (mean gap -6.12e-01).
+
+Gap recovery at cap 2: (K3 − ex4c2)/(K3 − K4 dense) = **0.81** [0.05, 2.91] (mean gap -6.12e-01).
+
+Gap recovery at cap 2: (K3 − exallc2)/(K3 − K4 dense) = **1.24** [0.06, 8.37] (mean gap -6.12e-01).
+
+Gap recovery at cap 3: (K3 − coh3)/(K3 − K4 dense) = **2580172.01** [124.27, 3656546.36] (mean gap -4.77e+01).
+
+Gap recovery at cap 3: (K3 − ex4c3)/(K3 − K4 dense) = **50.74** [0.52, 673.31] (mean gap -4.77e+01).
+
+Gap recovery at cap 3: (K3 − exallc3)/(K3 − K4 dense) = **1370.77** [0.07, 17047.15] (mean gap -4.77e+01).
+
+Recovery of the gap between the standard K=3 (cap 2) and the paper's K=4 (dense, cap 3), mean gap -4.77e+01:
+(K3c2 − coh2)/(K3c2 − K4c3) = 0.01 [0.00, 0.08]; 
+(K3c2 − ex22)/(K3c2 − K4c3) = 0.31 [0.00, 4.13]; 
+(K3c2 − ex4c2)/(K3c2 − K4c3) = 0.01 [0.00, 0.07]; 
+(K3c2 − exallc2)/(K3c2 − K4c3) = 0.02 [0.00, 0.19]; 
+(K3c2 − K4c2)/(K3c2 − K4c3) = 0.01 [0.00, 0.11]; 
+(K3c2 − K3c3)/(K3c2 − K4c3) = -0.00 [-0.00, 0.00]; 
+(K3c2 − coh3)/(K3c2 − K4c3) = 2580285.56 [101.05, 3663584.09]; 
+(K3c2 − ex4c3)/(K3c2 − K4c3) = 50.75 [0.51, 672.66]; 
+(K3c2 − exallc3)/(K3c2 − K4c3) = 1370.83 [0.07, 19310.69]; 
+
+K4c3 worse than K3c2 on 10/10 networks; MSE > 1e-2 (diverged) on 10/10.
+
+coh2_k6: RMS of the added final-layer mean correction = nan (its square nan vs MC floor 5.6e-08).
+
+coh2_k6_k8: RMS of the added final-layer mean correction = nan (its square nan vs MC floor 5.6e-08).
+
+coh2_k3sq: RMS of the added final-layer mean correction = nan (its square nan vs MC floor 5.6e-08).
+
+ex4c2_k6: RMS of the added final-layer mean correction = nan (its square nan vs MC floor 5.6e-08).
+
+ex4c2_k6_k8: RMS of the added final-layer mean correction = nan (its square nan vs MC floor 5.6e-08).
+
+Per-layer coherent κ4 constant β_l = 4 b̄/n + 4 B̄ (z-side, mean over networks) and b̄_l:
+
+| layer | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| β | 0.00e+00 | 1.95e-01 | 2.22e-01 | 2.09e-01 | 1.99e-01 | 1.61e-01 | 1.30e-01 | 7.40e-02 | 2.64e-02 | -1.06e-01 | -2.86e-01 | -2.12e-01 | -2.84e+00 | -4.76e+00 | -4.10e+00 | -4.73e+00 |
+| b̄ | 0.000 | 1.157 | 0.570 | 0.466 | 0.419 | 0.344 | 0.339 | 0.330 | 0.362 | 0.625 | 0.387 | -0.117 | -21.961 | -19.834 | -9.107 | -22.145 |
+
+## n = 64, L = 8 (10 networks, seeds 0–9; mean MC floor 5.5e-08)
+
+| variant | mean MSE [95% CI] | ratio to K3c2 [95% CI] | mean per-net SE |
+|---|---|---|---|
+| K3c2 | 4.760e-05 [3.65e-05, 6.03e-05] | 1.000 [1.000, 1.000] | 9.9e-07 |
+| coh2 | 8.064e-05 [5.84e-05, 1.03e-04] | 1.694 [1.162, 2.473] | 9.6e-07 |
+| ex22 | 7.874e-05 [5.71e-05, 1.01e-04] | 1.654 [1.144, 2.388] | 9.4e-07 |
+| ex4c2 | 6.011e-05 [4.32e-05, 7.94e-05] | 1.263 [0.868, 1.874] | 9.9e-07 |
+| exallc2 | 5.354e-05 [3.83e-05, 7.22e-05] | 1.125 [0.783, 1.694] | 9.4e-07 |
+| K4c2 | 5.123e-05 [3.72e-05, 6.82e-05] | 1.076 [0.742, 1.616] | 9.6e-07 |
+| K3c3 | 4.220e-05 [3.49e-05, 4.93e-05] | 0.886 [0.749, 1.051] | 1.0e-06 |
+| coh3 | 2.324e-04 [1.51e-04, 3.27e-04] | 4.882 [3.429, 7.054] | 1.3e-06 |
+| ex4c3 | 1.464e-04 [1.06e-04, 1.89e-04] | 3.076 [2.327, 4.099] | 1.3e-06 |
+| exallc3 | 1.308e-04 [9.28e-05, 1.74e-04] | 2.747 [2.085, 3.555] | 1.2e-06 |
+| K4c3 | 1.259e-05 [8.49e-06, 1.79e-05] | 0.265 [0.200, 0.333] | 2.9e-07 |
+| coh2_k6 | 1.778e-04 [1.10e-04, 2.54e-04] | 3.734 [2.100, 6.131] | 9.9e-07 |
+| coh2_k6_k8 | 1.789e-04 [1.10e-04, 2.56e-04] | 3.758 [2.128, 6.193] | 9.9e-07 |
+| coh2_k3sq | 8.238e-05 [6.10e-05, 1.04e-04] | 1.731 [1.194, 2.521] | 9.7e-07 |
+| ex4c2_k6 | 1.016e-04 [6.08e-05, 1.51e-04] | 2.134 [1.206, 3.460] | 1.0e-06 |
+| ex4c2_k6_k8 | 1.019e-04 [6.17e-05, 1.50e-04] | 2.141 [1.223, 3.478] | 1.0e-06 |
+
+Gap recovery at cap 2: (K3 − coh2)/(K3 − K4 dense) = **9.10** [-38.67, 46.09] (mean gap -3.63e-06).
+
+Gap recovery at cap 2: (K3 − ex4c2)/(K3 − K4 dense) = **3.45** [-12.70, 14.69] (mean gap -3.63e-06).
+
+Gap recovery at cap 2: (K3 − exallc2)/(K3 − K4 dense) = **1.64** [-2.48, 4.36] (mean gap -3.63e-06).
+
+Gap recovery at cap 3: (K3 − coh3)/(K3 − K4 dense) = **-6.42** [-11.50, -3.29] (mean gap 2.96e-05).
+
+Gap recovery at cap 3: (K3 − ex4c3)/(K3 − K4 dense) = **-3.52** [-5.95, -1.89] (mean gap 2.96e-05).
+
+Gap recovery at cap 3: (K3 − exallc3)/(K3 − K4 dense) = **-2.99** [-5.29, -1.53] (mean gap 2.96e-05).
+
+Recovery of the gap between the standard K=3 (cap 2) and the paper's K=4 (dense, cap 3), mean gap 3.50e-05:
+(K3c2 − coh2)/(K3c2 − K4c3) = -0.94 [-2.11, -0.20]; 
+(K3c2 − ex22)/(K3c2 − K4c3) = -0.89 [-2.00, -0.19]; 
+(K3c2 − ex4c2)/(K3c2 − K4c3) = -0.36 [-1.25, 0.17]; 
+(K3c2 − exallc2)/(K3c2 − K4c3) = -0.17 [-0.97, 0.29]; 
+(K3c2 − K4c2)/(K3c2 − K4c3) = -0.10 [-0.86, 0.33]; 
+(K3c2 − K3c3)/(K3c2 − K4c3) = 0.15 [-0.08, 0.36]; 
+(K3c2 − coh3)/(K3c2 − K4c3) = -5.28 [-8.83, -3.05]; 
+(K3c2 − ex4c3)/(K3c2 − K4c3) = -2.82 [-4.49, -1.67]; 
+(K3c2 − exallc3)/(K3c2 − K4c3) = -2.38 [-3.71, -1.39]; 
+
+K4c3 worse than K3c2 on 0/10 networks; MSE > 1e-2 (diverged) on 0/10.
+
+coh2_k6: RMS of the added final-layer mean correction = 7.13e-03 (its square 5.1e-05 vs MC floor 5.5e-08).
+
+coh2_k6_k8: RMS of the added final-layer mean correction = 7.17e-03 (its square 5.1e-05 vs MC floor 5.5e-08).
+
+coh2_k3sq: RMS of the added final-layer mean correction = 1.45e-03 (its square 2.1e-06 vs MC floor 5.5e-08).
+
+ex4c2_k6: RMS of the added final-layer mean correction = 4.16e-03 (its square 1.7e-05 vs MC floor 5.5e-08).
+
+ex4c2_k6_k8: RMS of the added final-layer mean correction = 4.20e-03 (its square 1.8e-05 vs MC floor 5.5e-08).
+
+Per-layer coherent κ4 constant β_l = 4 b̄/n + 4 B̄ (z-side, mean over networks) and b̄_l:
+
+| layer | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+|---|---|---|---|---|---|---|---|---|
+| β | 0.00e+00 | 9.70e-02 | 9.65e-02 | 8.07e-02 | 7.30e-02 | 5.82e-02 | 4.75e-02 | 3.66e-02 |
+| b̄ | 0.000 | 1.167 | 0.425 | 0.242 | 0.170 | 0.141 | 0.113 | 0.095 |
+
+## n = 64, L = 16 (10 networks, seeds 0–9; mean MC floor 3.6e-08)
+
+| variant | mean MSE [95% CI] | ratio to K3c2 [95% CI] | mean per-net SE |
+|---|---|---|---|
+| K3c2 | 1.630e-04 [9.38e-05, 2.49e-04] | 1.000 [1.000, 1.000] | 1.6e-06 |
+| coh2 | 4.394e-04 [2.86e-04, 6.17e-04] | 2.696 [1.832, 4.409] | 2.5e-06 |
+| ex22 | 4.403e-04 [2.77e-04, 6.24e-04] | 2.702 [1.770, 4.574] | 2.5e-06 |
+| ex4c2 | 3.554e-04 [2.23e-04, 5.04e-04] | 2.181 [1.561, 3.369] | 2.5e-06 |
+| exallc2 | 3.198e-04 [1.95e-04, 4.57e-04] | 1.962 [1.425, 3.002] | 2.3e-06 |
+| K4c2 | 3.784e-04 [2.50e-04, 5.27e-04] | 2.322 [1.700, 3.564] | 2.8e-06 |
+| K3c3 | 9.348e-05 [4.94e-05, 1.58e-04] | 0.574 [0.416, 0.727] | 1.7e-06 |
+| coh3 | 4.034e-01 [3.45e-02, 9.85e-01] | 2475.383 [218.636, 8765.746] | 1.7e-05 |
+| ex4c3 | 2.649e+01 [8.07e-03, 7.91e+01] | 162520.234 [54.415, 707415.833] | 6.3e-05 |
+| exallc3 | 1.030e-01 [1.72e-02, 2.21e-01] | 631.887 [137.436, 1154.581] | 1.4e-05 |
+| K4c3 | 3.512e-02 [1.05e-03, 1.02e-01] | 215.492 [9.253, 667.850] | 2.9e-06 |
+| coh2_k6 | 1.423e-03 [4.58e-04, 2.63e-03] | 8.729 [2.452, 21.819] | 2.6e-06 |
+| coh2_k6_k8 | 1.467e-03 [4.67e-04, 2.69e-03] | 9.003 [2.515, 22.573] | 2.6e-06 |
+| coh2_k3sq | 4.483e-04 [2.96e-04, 6.22e-04] | 2.751 [1.897, 4.548] | 2.6e-06 |
+| ex4c2_k6 | 1.151e-03 [3.40e-04, 2.26e-03] | 7.062 [1.881, 19.762] | 2.6e-06 |
+| ex4c2_k6_k8 | 1.159e-03 [3.46e-04, 2.31e-03] | 7.114 [1.907, 19.107] | 2.6e-06 |
+
+Gap recovery at cap 2: (K3 − coh2)/(K3 − K4 dense) = **1.28** [0.94, 1.77] (mean gap -2.15e-04).
+
+Gap recovery at cap 2: (K3 − ex4c2)/(K3 − K4 dense) = **0.89** [0.63, 1.20] (mean gap -2.15e-04).
+
+Gap recovery at cap 2: (K3 − exallc2)/(K3 − K4 dense) = **0.73** [0.49, 0.94] (mean gap -2.15e-04).
+
+Gap recovery at cap 3: (K3 − coh3)/(K3 − K4 dense) = **11.52** [0.68, 648.87] (mean gap -3.50e-02).
+
+Gap recovery at cap 3: (K3 − ex4c3)/(K3 − K4 dense) = **756.19** [0.18, 51454.17] (mean gap -3.50e-02).
+
+Gap recovery at cap 3: (K3 − exallc3)/(K3 − K4 dense) = **2.94** [0.37, 75.65] (mean gap -3.50e-02).
+
+Recovery of the gap between the standard K=3 (cap 2) and the paper's K=4 (dense, cap 3), mean gap -3.50e-02:
+(K3c2 − coh2)/(K3c2 − K4c3) = 0.01 [0.00, 0.34]; 
+(K3c2 − ex22)/(K3c2 − K4c3) = 0.01 [0.00, 0.34]; 
+(K3c2 − ex4c2)/(K3c2 − K4c3) = 0.01 [0.00, 0.23]; 
+(K3c2 − exallc2)/(K3c2 − K4c3) = 0.00 [0.00, 0.19]; 
+(K3c2 − K4c2)/(K3c2 − K4c3) = 0.01 [0.00, 0.24]; 
+(K3c2 − K3c3)/(K3c2 − K4c3) = -0.00 [-0.05, -0.00]; 
+(K3c2 − coh3)/(K3c2 − K4c3) = 11.54 [0.67, 690.51]; 
+(K3c2 − ex4c3)/(K3c2 − K4c3) = 757.69 [0.18, 55263.51]; 
+(K3c2 − exallc3)/(K3c2 − K4c3) = 2.94 [0.34, 77.10]; 
+
+K4c3 worse than K3c2 on 10/10 networks; MSE > 1e-2 (diverged) on 1/10.
+
+coh2_k6: RMS of the added final-layer mean correction = 2.38e-02 (its square 5.7e-04 vs MC floor 3.6e-08).
+
+coh2_k6_k8: RMS of the added final-layer mean correction = 2.45e-02 (its square 6.0e-04 vs MC floor 3.6e-08).
+
+coh2_k3sq: RMS of the added final-layer mean correction = 1.33e-03 (its square 1.8e-06 vs MC floor 3.6e-08).
+
+ex4c2_k6: RMS of the added final-layer mean correction = 1.91e-02 (its square 3.7e-04 vs MC floor 3.6e-08).
+
+ex4c2_k6_k8: RMS of the added final-layer mean correction = 1.97e-02 (its square 3.9e-04 vs MC floor 3.6e-08).
+
+Per-layer coherent κ4 constant β_l = 4 b̄/n + 4 B̄ (z-side, mean over networks) and b̄_l:
+
+| layer | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| β | 0.00e+00 | 9.70e-02 | 9.65e-02 | 8.07e-02 | 7.30e-02 | 5.82e-02 | 4.75e-02 | 3.66e-02 | 2.53e-02 | 1.70e-02 | 1.22e-02 | 6.68e-03 | 2.64e-03 | -5.65e-04 | -5.40e-03 | -1.04e-02 |
+| b̄ | 0.000 | 1.167 | 0.425 | 0.242 | 0.170 | 0.141 | 0.113 | 0.095 | 0.084 | 0.057 | 0.045 | 0.037 | 0.031 | 0.029 | 0.036 | 0.024 |
+
+## n = 128, L = 8 (1 networks, seeds 0–0; mean MC floor 6.0e-08)
+
+| variant | mean MSE [95% CI] | ratio to K3c2 [95% CI] | mean per-net SE |
+|---|---|---|---|
+| K3c2 | 1.047e-05 [1.05e-05, 1.05e-05] | 1.000 [1.000, 1.000] | 3.0e-07 |
+| coh2 | 7.586e-06 [7.59e-06, 7.59e-06] | 0.725 [0.725, 0.725] | 2.9e-07 |
+| ex22 | 7.521e-06 [7.52e-06, 7.52e-06] | 0.718 [0.718, 0.718] | 2.9e-07 |
+| ex4c2 | 7.466e-06 [7.47e-06, 7.47e-06] | 0.713 [0.713, 0.713] | 2.9e-07 |
+| exallc2 | 8.166e-06 [8.17e-06, 8.17e-06] | 0.780 [0.780, 0.780] | 3.1e-07 |
+| K4c2 | 9.373e-06 [9.37e-06, 9.37e-06] | 0.895 [0.895, 0.895] | 3.9e-07 |
+| K3c3 | 1.166e-05 [1.17e-05, 1.17e-05] | 1.113 [1.113, 1.113] | 4.0e-07 |
+| coh3 | 1.079e-05 [1.08e-05, 1.08e-05] | 1.031 [1.031, 1.031] | 2.3e-07 |
+| ex4c3 | 1.016e-05 [1.02e-05, 1.02e-05] | 0.971 [0.971, 0.971] | 2.3e-07 |
+| exallc3 | 1.103e-05 [1.10e-05, 1.10e-05] | 1.054 [1.054, 1.054] | 2.4e-07 |
+| K4c3 | 9.675e-07 [9.67e-07, 9.67e-07] | 0.092 [0.092, 0.092] | 1.0e-07 |
+| coh2_k6 | 8.165e-06 [8.16e-06, 8.16e-06] | 0.780 [0.780, 0.780] | 2.9e-07 |
+| coh2_k6_k8 | 8.166e-06 [8.17e-06, 8.17e-06] | 0.780 [0.780, 0.780] | 2.9e-07 |
+| coh2_k3sq | 8.026e-06 [8.03e-06, 8.03e-06] | 0.767 [0.767, 0.767] | 3.0e-07 |
+| ex4c2_k6 | 7.918e-06 [7.92e-06, 7.92e-06] | 0.756 [0.756, 0.756] | 2.9e-07 |
+| ex4c2_k6_k8 | 7.918e-06 [7.92e-06, 7.92e-06] | 0.756 [0.756, 0.756] | 2.9e-07 |
+
+Gap recovery at cap 2: (K3 − coh2)/(K3 − K4 dense) = **2.63** [2.63, 2.63] (mean gap 1.10e-06).
+
+Gap recovery at cap 2: (K3 − ex4c2)/(K3 − K4 dense) = **2.74** [2.74, 2.74] (mean gap 1.10e-06).
+
+Gap recovery at cap 2: (K3 − exallc2)/(K3 − K4 dense) = **2.10** [2.10, 2.10] (mean gap 1.10e-06).
+
+Gap recovery at cap 3: (K3 − coh3)/(K3 − K4 dense) = **0.08** [0.08, 0.08] (mean gap 1.07e-05).
+
+Gap recovery at cap 3: (K3 − ex4c3)/(K3 − K4 dense) = **0.14** [0.14, 0.14] (mean gap 1.07e-05).
+
+Gap recovery at cap 3: (K3 − exallc3)/(K3 − K4 dense) = **0.06** [0.06, 0.06] (mean gap 1.07e-05).
+
+Recovery of the gap between the standard K=3 (cap 2) and the paper's K=4 (dense, cap 3), mean gap 9.50e-06:
+(K3c2 − coh2)/(K3c2 − K4c3) = 0.30 [0.30, 0.30]; 
+(K3c2 − ex22)/(K3c2 − K4c3) = 0.31 [0.31, 0.31]; 
+(K3c2 − ex4c2)/(K3c2 − K4c3) = 0.32 [0.32, 0.32]; 
+(K3c2 − exallc2)/(K3c2 − K4c3) = 0.24 [0.24, 0.24]; 
+(K3c2 − K4c2)/(K3c2 − K4c3) = 0.12 [0.12, 0.12]; 
+(K3c2 − K3c3)/(K3c2 − K4c3) = -0.13 [-0.13, -0.13]; 
+(K3c2 − coh3)/(K3c2 − K4c3) = -0.03 [-0.03, -0.03]; 
+(K3c2 − ex4c3)/(K3c2 − K4c3) = 0.03 [0.03, 0.03]; 
+(K3c2 − exallc3)/(K3c2 − K4c3) = -0.06 [-0.06, -0.06]; 
+
+K4c3 worse than K3c2 on 0/1 networks; MSE > 1e-2 (diverged) on 0/1.
+
+coh2_k6: RMS of the added final-layer mean correction = 3.26e-04 (its square 1.1e-07 vs MC floor 6.0e-08).
+
+coh2_k6_k8: RMS of the added final-layer mean correction = 3.26e-04 (its square 1.1e-07 vs MC floor 6.0e-08).
+
+coh2_k3sq: RMS of the added final-layer mean correction = 4.34e-04 (its square 1.9e-07 vs MC floor 6.0e-08).
+
+ex4c2_k6: RMS of the added final-layer mean correction = 2.69e-04 (its square 7.3e-08 vs MC floor 6.0e-08).
+
+ex4c2_k6_k8: RMS of the added final-layer mean correction = 2.70e-04 (its square 7.3e-08 vs MC floor 6.0e-08).
+
+Per-layer coherent κ4 constant β_l = 4 b̄/n + 4 B̄ (z-side, mean over networks) and b̄_l:
+
+| layer | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+|---|---|---|---|---|---|---|---|---|
+| β | 0.00e+00 | 4.82e-02 | 4.66e-02 | 3.66e-02 | 3.19e-02 | 2.40e-02 | 1.88e-02 | 1.62e-02 |
+| b̄ | 0.000 | 1.117 | 0.354 | 0.153 | 0.094 | 0.066 | 0.051 | 0.048 |
+
+## Scaling MSE(n) ∝ n^{-α} (per variant and depth; fit of log mean MSE on log n; bootstrap over networks)
+
+| L | variant | widths | α [95% CI] |
+|---|---|---|---|
+| 8 | K3c2 | [32, 64, 128] | 2.55 [2.20, 2.82] |
+| 8 | coh2 | [32, 64, 128] | 4.53 [3.77, 5.05] |
+| 8 | ex22 | [32, 64, 128] | 4.56 [3.72, 5.13] |
+| 8 | ex4c2 | [32, 64, 128] | 4.13 [3.42, 4.63] |
+| 8 | exallc2 | [32, 64, 128] | 4.03 [3.33, 4.56] |
+| 8 | K4c2 | [32, 64, 128] | 3.78 [3.36, 4.10] |
+| 8 | K3c3 | [32, 64, 128] | 2.66 [2.21, 2.98] |
+| 8 | coh3 | [32, 64, 128] | 5.94 [5.10, 6.39] |
+| 8 | ex4c3 | [32, 64, 128] | 5.30 [4.47, 5.82] |
+| 8 | exallc3 | [32, 64, 128] | 5.05 [4.45, 5.38] |
+| 8 | K4c3 | [32, 64, 128] | 5.27 [4.26, 5.89] |
+| 8 | coh2_k6 | [32, 64, 128] | 11.16 [5.48, 11.95] |
+| 8 | coh2_k6_k8 | [32, 64, 128] | 10.76 [5.40, 11.55] |
+| 8 | coh2_k3sq | [32, 64, 128] | 4.39 [3.78, 4.83] |
+| 8 | ex4c2_k6 | [32, 64, 128] | 10.09 [4.90, 10.88] |
+| 8 | ex4c2_k6_k8 | [32, 64, 128] | 7.86 [4.79, 8.64] |
+| 16 | K3c2 | [32, 64] | 4.20 [2.39, 5.55] |
+| 16 | coh2 | [32, 64] | 9.92 [8.26, 11.00] |
+| 16 | ex22 | [32, 64] | 15.03 [7.53, 16.81] |
+| 16 | ex4c2 | [32, 64] | 10.45 [6.93, 11.82] |
+| 16 | exallc2 | [32, 64] | 11.22 [6.85, 12.89] |
+| 16 | K4c2 | [32, 64] | 10.67 [8.30, 11.84] |
+| 16 | K3c3 | [32, 64] | 3.27 [2.07, 4.47] |
+| 16 | coh3 | [32, 64] | 28.18 [12.80, 32.05] |
+| 16 | ex4c3 | [32, 64] | 6.51 [-0.74, 18.41] |
+| 16 | exallc3 | [32, 64] | 19.28 [4.58, 22.34] |
+| 16 | K4c3 | [32, 64] | 10.41 [7.12, 15.91] |
+| 16 | coh2_k6 | [32, 64] | nan [nan, nan] |
+| 16 | coh2_k6_k8 | [32, 64] | nan [nan, nan] |
+| 16 | coh2_k3sq | [32, 64] | nan [nan, nan] |
+| 16 | ex4c2_k6 | [32, 64] | nan [nan, nan] |
+| 16 | ex4c2_k6_k8 | [32, 64] | nan [nan, nan] |
+## Decomposition: coherent replacement of one κ4 slice inside the dense reference
+
+Slice hooks replace the pre-activation (4,) slice by W⁴b + 12B̄ and/or the (2,2) slice by 4b̄/n + 4B̄
+(b, B from the dense post-ReLU κ4), or zero the random-sign slices (3,1), (2,1,1), (1,1,1,1) (cap 3).
+Falsifier (written before running) for '(2,2) rank-one is adequate, (4,) replacement is what fails':
+replacing only (2,2) moves the MSE more than replacing only (4,).
+
+## n = 1024: newborn coherent κ4 constant β_l vs V29's fitted λ_l (4 self-baked MLPs, seeds 0–3)
+
+β_l = 4 b̄/n + 4 B̄ from the Gaussian-input (cap 2) newborn κ4 of each post-ReLU layer along the K=2 closure;
+λ_l = V29's table × 0.95. Falsifier for 'β is V29's λ': λ/β varies by > 2× across layers.
+
+| layer | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| β | 6.0e-03 | 1.8e-03 | 8.3e-04 | 4.4e-04 | 2.2e-04 | 1.1e-04 | 9.6e-05 | 4.6e-05 | 3.0e-05 | 1.6e-05 | 2.2e-05 | 7.6e-07 | 5.5e-06 | 6.3e-06 | -1.9e-06 | 3.9e-06 |
+| λ (V29) | 4.7e-03 | 7.7e-03 | 9.3e-03 | 1.0e-02 | 1.0e-02 | 1.0e-02 | 1.0e-02 | 9.5e-03 | 9.2e-03 | 8.7e-03 | 8.3e-03 | 8.0e-03 | 7.7e-03 | 7.3e-03 | 6.9e-03 | 6.9e-03 |
+| λ/β | 0.792 | 4.25 | 11.4 | 23 | 46.9 | 94.8 | 110 | 268 | 355 | 946 | 661 | 1.36e+03 | 332 | 1.34e+03 | 3.05e+03 | 4.22e+03 |
+| frac b<0 | 0.00 | 0.14 | 0.22 | 0.26 | 0.30 | 0.32 | 0.33 | 0.36 | 0.38 | 0.38 | 0.39 | 0.39 | 0.40 | 0.40 | 0.41 | 0.42 |
+
+Outcome: falsified — λ/β grows from 0.79 to 4224: the newborn
+β decays ~10³× over 16 layers (a growing fraction of neurons have t > 0.76, where κ4 < 0, so b̄ cancels)
+while λ is flat; V29's λ multiplies C_off in a partial-trace core and is not the coherent κ4 of z.
+
