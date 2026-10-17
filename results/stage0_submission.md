@@ -1,8 +1,26 @@
 # Stage 0 — graded Phase-2 submission
 
 > LLM-generated record (Claude Code). Deadline: Phase-2 submissions close **2026-10-17 23:59 UTC**.
-> Status: **ready to submit, not yet submitted** — the cloud sandbox has no AIcrowd credentials and
-> its network policy blocks aicrowd.com, so Areeb submits (commands below).
+> Status: **DONE — both submissions graded** (submitted by Areeb from a Kaggle notebook on
+> 2026-10-16; the cloud sandbox has no AIcrowd access).
+
+## Grader results [measured by the grader; transcribed from Areeb's screenshot of the submissions page, 3 significant digits]
+
+| ID | submitted (page time) | status | adjusted | final-layer MSE | which bundle (inferred) |
+|---|---|---|---|---|---|
+| #336561 | Oct 16, 18:20 | GRADED | 5.42e-9 | 2.13e-8 | A (leaf 8) — submitted first by the Kaggle cell |
+| #336562 | Oct 16, 18:41 | GRADED | 5.42e-9 | 2.13e-8 | B (V29 verbatim) — submitted after A's `--watch` ended |
+
+Acceptance criterion of Stage 0 (a graded, non-failed submission ID) is **met**.
+
+**Open discrepancy.** The leaf-8 projection (≈ 5.22e-9 adjusted, multiplier ≈ 0.245) is **not**
+seen: both show 5.42e-9, i.e. the grader billed A like V29 (multiplier ≈ 0.254), or A's tarball
+did not contain the leaf-8 file. `origin/main:submission/estimator.py` does contain
+`STRASSEN_MIN ... "8"` (checked 2026-10-17 04:10 UTC). Needed to resolve: each submission's
+`mean_score_multiplier` / FLOPs from its "View" page or report.json, and
+`tar xzf s0a_leaf8.tar.gz -O estimator.py | grep "^STRASSEN_MIN ="` on Kaggle. Until then the
+leaf-8 projection is **unconfirmed** (treat as falsified on the grader).
+Leaderboard top (Areeb, 2026-10-17): 1.42e-9 adjusted — 3.8× below ours.
 
 | field | primary (A) | fallback (B) |
 |---|---|---|

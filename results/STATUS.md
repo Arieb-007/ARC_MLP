@@ -38,9 +38,10 @@
   by 1.6–3.3× → falsified as a quantitative law (FINDINGS F4); the measured table stands.
 
 ### Open / next
-1. Areeb: submit A (and optionally B); record IDs in `results/stage0_submission.md`.
+1. Stage 0 DONE: #336561 (A, leaf 8) and #336562 (B, V29 verbatim) both GRADED, 5.42e-9 adjusted,
+   2.13e-8 raw. Open: why A shows no leaf-8 gain (need multiplier from the report).
 2. Stage 1: derive λ_l from the coherent partial trace (tree-level joint cumulants of ReLU outputs +
    W^T Γ W ≈ 2γ̄ I); compare with V29's LAM/REF_R tables; first numerical check at small n.
 3. Stage 2.1: dense K≤4 reference at n=64/128 + MC verification.
 
-Next acceptance criterion: a graded, non-failed submission ID in `results/stage0_submission.md`.
+Next acceptance criterion: Stage-1 write-up draft (docs/writeup/writeup.md) with every table backed by results/.
