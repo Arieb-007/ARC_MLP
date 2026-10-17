@@ -81,7 +81,7 @@ encouraged but must be disclosed; unhedged dubious claims make judges distrust t
 | **504aldo "V29"** (MIT, public): factorized K=3 (paper §4.3), memoryless κ4 `G_off = λ_l·C_off`, rank-16 D21 feedback, shared low-rank bases for old sources, Strassen–Winograd | 2.13e-8 | 0.25 | 5.4e-9 (5.2e-9 with `STRASSEN_MIN=8`) |
 | Leaderboard top 15 (methods not public) | 1.15–2.0e-8 | 0.10–0.16 | 1.4–2.1e-9 |
 
-Independent grader record for V29 verbatim (Hisernberg/arc-whitebox archive, #333467):
+Independent grader record for V29 verbatim (Hisernberg/arc-whitebox archive, [AIcrowd 333467](https://www.aicrowd.com/challenges/arc-white-box-estimation-challenge-2026/submissions/333467)):
 raw 2.1327e-8, multiplier 0.2542, adjusted 5.418e-9, residual 0.183 s mean / 0.195 s max,
 100/100 MLPs. Hisernberg's later V32+GRU-corrector variants reach ≈ 3.96e-9 adjusted
 (their README; not verified by us).

@@ -37,7 +37,7 @@ the expected change is ≈ 0 because the float32 rounding differences are not al
 [hypothesis, consistent with 504aldo's "MSE unchanged to 4 digits"].
 
 **FLOP accounting reproduces the grader** [measured vs external]: leaf-32 first-call 0.2671 and
-steady 0.2526 equal the grader's max/min multipliers for V29 verbatim (#333467: min 0.2526,
+steady 0.2526 equal the grader's max/min multipliers for V29 verbatim ([AIcrowd 333467](https://www.aicrowd.com/challenges/arc-white-box-estimation-challenge-2026/submissions/333467): min 0.2526,
 max 0.2671).
 
 ## Local `whest run --runner subprocess` is stricter than the grader (negative result)
@@ -69,7 +69,7 @@ ratio leaf 8 / leaf 32 = 1.12–1.13 (3.13: 1.12–1.16); peak-RSS delta +0.48 G
 
 ## Projection to the grader for leaf 8 [hypothesis — projection, not a measurement]
 
-Scaling the grader's V29 record (#333467, external) by the local leaf-8/leaf-32 ratios:
+Scaling the grader's V29 record ([AIcrowd 333467](https://www.aicrowd.com/challenges/arc-white-box-estimation-challenge-2026/submissions/333467), external) by the local leaf-8/leaf-32 ratios:
 
 | quantity | V29 on grader | ratio (local) | projected leaf 8 | cap |
 |---|---|---|---|---|

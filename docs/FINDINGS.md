@@ -188,7 +188,7 @@ caused by diffuse random-sign κ3 contractions.
 
 | idea | evidence | status |
 |---|---|---|
-| any sampling component | output variance ≈ 0.08/neuron (consistent with the grader's `sampling_mse` 1.132e-6 at 65,374 passes → 0.074 [external, #333467 report]); 6,500 passes at 0.1B → raw 1.2e-5; 1e-8 needs ≈ 7e6 passes = 100 budgets; Rao–Blackwellising on slow modes is worse; randomized sketches of the cube need S ≳ n/ε² | prompt; arithmetic [proven] given the variance |
+| any sampling component | output variance ≈ 0.08/neuron (consistent with the grader's `sampling_mse` 1.132e-6 at 65,374 passes → 0.074 [external, [AIcrowd 333467](https://www.aicrowd.com/challenges/arc-white-box-estimation-challenge-2026/submissions/333467) report]); 6,500 passes at 0.1B → raw 1.2e-5; 1e-8 needs ≈ 7e6 passes = 100 budgets; Rao–Blackwellising on slow modes is worse; randomized sketches of the cube need S ≳ n/ε² | prompt; arithmetic [proven] given the variance |
 | Richardson extrapolation across truncation orders | corr(K2 error, K2−K1) = +0.031 / −0.214 / +0.029 (seeds 3, 4, 5); oracle α gains ≤ 8% | measured (E3) |
 | spherical designs / cubature at the input | O(n^{-1/2}) per-neuron 1-D error; Kerdock–MUB negative result | prompt |
 | conditioning on a few slow modes as a replacement for dense κ3 | E2: k = 16 modes only halves the oracle K=2 error (4.69e-6 → 2.16e-6) | measured (E2) |

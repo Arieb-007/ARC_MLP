@@ -38,8 +38,8 @@
   by 1.6–3.3× → falsified as a quantitative law (FINDINGS F4); the measured table stands.
 
 ### Open / next
-1. Stage 0 DONE: 4 graded submissions. A (leaf 8): #336554, #336558 at 5.23e-9; B (V29 verbatim):
-   #336561, #336562 at 5.42e-9; raw 2.13e-8 for all (bundle labels inferred from scores).
+1. Stage 0 DONE: 4 graded submissions. A (leaf 8): [AIcrowd 336554](https://www.aicrowd.com/challenges/arc-white-box-estimation-challenge-2026/submissions/336554), [AIcrowd 336558](https://www.aicrowd.com/challenges/arc-white-box-estimation-challenge-2026/submissions/336558) at 5.23e-9; B (V29 verbatim):
+   [AIcrowd 336561](https://www.aicrowd.com/challenges/arc-white-box-estimation-challenge-2026/submissions/336561), [AIcrowd 336562](https://www.aicrowd.com/challenges/arc-white-box-estimation-challenge-2026/submissions/336562) at 5.42e-9; raw 2.13e-8 for all (bundle labels inferred from scores).
    Leaf-8 projection (≈ 5.22e-9) confirmed to 3 digits.
 2. Stage 1 (2026-10-17): analytic λ attempted, stop rule triggered — no submission
    (`results/2026-10-17_stage1_lambda.md`, FINDINGS F8). Kept for the write-up: true-κ4 one-scalar
@@ -48,4 +48,4 @@
 3. Stage 2.1: dense K≤4 reference at n=64/128 + MC verification.
 
 Next acceptance criterion: Stage-1 write-up draft (docs/writeup/writeup.md) with every table backed by results/,
-nominating #336554 (pending confirmation of its multiplier on the View page).
+nominating [AIcrowd 336554](https://www.aicrowd.com/challenges/arc-white-box-estimation-challenge-2026/submissions/336554) (pending confirmation of its multiplier on the View page).

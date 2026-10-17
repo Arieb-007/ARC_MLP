@@ -8,13 +8,13 @@
 
 | ID | submitted (page time) | status | adjusted | final-layer MSE | bundle (inferred from the score) |
 |---|---|---|---|---|---|
-| #336554 | Oct 16, 17:42 | GRADED | **5.23e-9** | 2.13e-8 | A (V29 + STRASSEN_MIN=8) |
-| #336558 | Oct 16, 17:51 | GRADED | **5.23e-9** | 2.13e-8 | A (V29 + STRASSEN_MIN=8) |
-| #336561 | Oct 16, 18:20 | GRADED | 5.42e-9 | 2.13e-8 | B (V29 verbatim) |
-| #336562 | Oct 16, 18:41 | GRADED | 5.42e-9 | 2.13e-8 | B (V29 verbatim) |
+| [AIcrowd 336554](https://www.aicrowd.com/challenges/arc-white-box-estimation-challenge-2026/submissions/336554) | Oct 16, 17:42 | GRADED | **5.23e-9** | 2.13e-8 | A (V29 + STRASSEN_MIN=8) |
+| [AIcrowd 336558](https://www.aicrowd.com/challenges/arc-white-box-estimation-challenge-2026/submissions/336558) | Oct 16, 17:51 | GRADED | **5.23e-9** | 2.13e-8 | A (V29 + STRASSEN_MIN=8) |
+| [AIcrowd 336561](https://www.aicrowd.com/challenges/arc-white-box-estimation-challenge-2026/submissions/336561) | Oct 16, 18:20 | GRADED | 5.42e-9 | 2.13e-8 | B (V29 verbatim) |
+| [AIcrowd 336562](https://www.aicrowd.com/challenges/arc-white-box-estimation-challenge-2026/submissions/336562) | Oct 16, 18:41 | GRADED | 5.42e-9 | 2.13e-8 | B (V29 verbatim) |
 
 Acceptance criterion of Stage 0 (a graded, non-failed submission ID) is **met**. Best:
-**#336554 / #336558, 5.23e-9 adjusted**.
+**[AIcrowd 336554](https://www.aicrowd.com/challenges/arc-white-box-estimation-challenge-2026/submissions/336554) / [AIcrowd 336558](https://www.aicrowd.com/challenges/arc-white-box-estimation-challenge-2026/submissions/336558), 5.23e-9 adjusted**.
 
 **Leaf-8 projection vs grader.** Projected ≈ 5.22e-9 (multiplier ≈ 0.245, raw unchanged);
 graded 5.23e-9 with raw 2.13e-8 unchanged → implied multiplier 0.2542 × 5.23/5.42 ≈ 0.245
@@ -33,12 +33,12 @@ Leaderboard top (Areeb, 2026-10-17): 1.42e-9 adjusted — 3.7× below our best.
 | off-suite smoke shapes 4×2, 64×16, 256×32, 1024×3 | finite, correct shape | (same code path) |
 | setup time | 0.10–0.30 s (cap 5 s) | 0.10–0.17 s |
 | local C/B (first / steady) | 0.2592 / 0.2432 **[measured]** | 0.2671 / 0.2526 **[measured]**, = grader min/max |
-| raw final-layer MSE | ≈ 2.13e-8 **[projection]**: predictions within 1.1e-11 MSE of B | 2.1327e-8 on the 100 public MLPs **[external: grader report #333467]** |
+| raw final-layer MSE | ≈ 2.13e-8 **[projection]**: predictions within 1.1e-11 MSE of B | 2.1327e-8 on the 100 public MLPs **[external: grader report [AIcrowd 333467](https://www.aicrowd.com/challenges/arc-white-box-estimation-challenge-2026/submissions/333467)]** |
 | adjusted | ≈ 5.22e-9 **[projection]** | 5.418e-9 **[external]** |
 | residual s | local 0.505–0.556 (py3.13); grader projection ≈ 0.21–0.23 **[projection]** | grader 0.183 mean / 0.195 max **[external]**; local 0.435–0.48 |
 | predict wall s | local 93–101; grader projection ≈ 81 / 89 max | grader 68.9 / 75.4 max |
 | peak RSS (local, in-process) | 6.48 GB | 6.00 GB |
-| submission ID | #336554, #336558 (5.23e-9) | #336561, #336562 (5.42e-9) |
+| submission ID | [AIcrowd 336554](https://www.aicrowd.com/challenges/arc-white-box-estimation-challenge-2026/submissions/336554), [AIcrowd 336558](https://www.aicrowd.com/challenges/arc-white-box-estimation-challenge-2026/submissions/336558) (5.23e-9) | [AIcrowd 336561](https://www.aicrowd.com/challenges/arc-white-box-estimation-challenge-2026/submissions/336561), [AIcrowd 336562](https://www.aicrowd.com/challenges/arc-white-box-estimation-challenge-2026/submissions/336562) (5.42e-9) |
 | commit | see `git log -- submission/` | see `git log -- submission_fallback_v29/` |
 
 Evidence: `results/2026-10-16_stage0_leaf_probe.{md,json}` (cost/memory/timing per leaf; prediction

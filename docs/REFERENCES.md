@@ -32,7 +32,7 @@
   `docs/findings_log.md` incl. F105 correction), commit `1a4083f` (read).
 - V29 source (MIT): https://github.com/504aldo/whest-p2-cumulant-k3/blob/main/estimators/estimator_v29.py
   (vendored in `third_party/v29/`).
-- Hisernberg's submission archive incl. V29-verbatim grader report #333467:
+- Hisernberg's submission archive incl. V29-verbatim grader report [AIcrowd 333467](https://www.aicrowd.com/challenges/arc-white-box-estimation-challenge-2026/submissions/333467):
   https://github.com/Hisernberg/arc-whitebox (commit `b72d12f`, read).
 
 ## Mathematical background
