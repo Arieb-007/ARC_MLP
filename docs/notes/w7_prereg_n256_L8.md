@@ -1,4 +1,4 @@
-# W7 — pre-registered prediction for n = 256, L = 8 (written 2026-10-17 07:30 UTC, before any n = 256, L = 8 run)
+# W7 — pre-registered prediction for n = 256, L = 8 (written 2026-10-17 before any n = 256, L = 8 W7 run; see the commit timestamp of 43a0c5d)
 
 > Written by an LLM agent (Claude Code) for team Arieb-007. Status: **hypothesis** (a prediction from a
 > two-width fit); recorded before the data exist so that it can fail.
