@@ -209,6 +209,30 @@ closed-form-mean requirement, but sampling is dead anyway (F6).
 
 ---
 
+## F8 — The κ4 regeneration coefficient λ_l: what is physical and what is effective (2026-10-17)
+
+Evidence: `results/2026-10-17_stage1_lambda.md` (E4, E4b, E4c, E5).
+
+- **[measured]** For the *true* κ4 of He-ReLU networks (n = 128, L = 16, 3 networks, MC with an exact
+  partial-trace identity), the off-diagonal core G_ij = c_A Σ_k κ4(h_i,h_j,h_k,h_k) is proportional
+  to C_post,ij with R² 0.67–0.95 per layer. One scalar per layer is a real property, network-specific
+  at depth (λ* differs up to 3× between networks at layers 10–14).
+- **[proven at leading order; measured to 1%]** At layer 0 (Gaussian z) λ is fit-free:
+  λ = c_A⟨A + B + D, C_off⟩/‖C_off‖², where D_ij = c_ij[Φ_j k3'_i + Φ_i k3'_j] is the (3,1) slice
+  with k3' = ∂_m κ3(ReLU(z)) = 3(1−Φ)(E h² − 2(E h)²), A_ij = Φ_iΦ_j Σ_{k∉{i,j}} c_ik c_jk γ_k with
+  γ = 2[Φ(1−Φ) − μφ/s] (the coherent k-sum), B the mixed term. Theory/MC = 0.99 on all three
+  networks; 85% of λ comes from D.
+- **[measured; falsified as a full model]** At depth the newborn terms are ≈ 0 (|ratio| ≲ 0.1); the
+  core is transported memory. A leading-order transport law (coherent weight
+  Σ_k w_k W_kc W_kd ≈ 2w̄δ_cd, w = Φ − μφ/s) explains a median ≈ 68% of λ one step at a time
+  (range 0.44–1.07); a ~30% source is missing (open; candidate κ3(z)-driven terms).
+- **[measured]** On a 1024×16 network, at layer 0 where the theory is exact, the physical λ is
+  1.46e-2 while V29 uses 4.7e-3 (3× smaller); the newborn λ is ≈ 0 at depth while V29 uses ≈ 1e-2.
+  **[hypothesis]** V29's λ is an effective constant of its truncated chain (absorbing missing terms),
+  not the physical κ4/covariance coefficient; this corrects the brief's reading of V29's λ as "the
+  coherent κ4 constant". Test: insert the physical λ into the chain and measure (not done).
+- Decision: no analytic-λ submission in Phase 2 (pre-registered stop rule triggered).
+
 ## Stage-0 facts
 
 See `results/stage0_submission.md` and `results/STATUS.md`.
