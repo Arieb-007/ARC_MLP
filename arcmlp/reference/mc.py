@@ -27,6 +27,8 @@ import time
 
 import numpy as np
 
+from arcmlp.reference.device import asnumpy, free_pool, resolve_device, xp_for_device
+
 
 def _git_hash():
     try:
@@ -168,22 +170,85 @@ def debiased_mse(est_final, truth):
     return dict(raw=raw, floor=floor, debiased=raw - floor, se=math.sqrt(var_cross + var_chi), N=N)
 
 
-def cache_key(n, L, wseed, N, mc_seed):
-    return f"n{n}_L{L}_w{wseed}_N{N:.0e}_mc{mc_seed}".replace("+", "")
+def mc_truth_device(Ws, N, seed=0, chunk=65_536, device=None, log_every=0.0):
+    """Device-agnostic (numpy / CuPy) chunked MC of the per-layer means and the final-layer
+    covariance: float32 forward passes, float64 accumulators for the means; the final-layer
+    second moments use one float32 GEMM per chunk accumulated in float64 (they only feed the MC
+    floor and its standard error). Per-chunk streams: default_rng(SeedSequence([seed, chunk_idx])).
+    Returns the same keys as mc_truth(moments='final') as numpy arrays."""
+    device = resolve_device(device)
+    xp = xp_for_device(device)
+    Ws = [np.asarray(W, dtype=np.float32) for W in Ws]
+    L, n = len(Ws), Ws[0].shape[0]
+    N = int(N)
+    WT = [xp.asarray(np.ascontiguousarray(W.T)) for W in Ws]
+
+    def rng_for(tag):
+        return xp.random.default_rng(int(np.random.SeedSequence([seed, tag]).generate_state(1)[0]))
+
+    h = rng_for(10 ** 9).standard_normal((10_000, n), dtype=xp.float32)
+    shift = []
+    for l in range(L):
+        h = xp.maximum(h @ WT[l], 0)
+        shift.append(h.mean(0, dtype=xp.float64))
+    shift = xp.stack(shift)                      # (L, n) float64
+    shift32 = shift.astype(xp.float32)
+    S1 = xp.zeros((L, n), dtype=xp.float64)
+    S2 = xp.zeros(n, dtype=xp.float64)
+    sLL = xp.zeros((n, n), dtype=xp.float64)
+    done, c, t0, tl = 0, 0, time.time(), time.time()
+    while done < N:
+        b = min(chunk, N - done)
+        h = rng_for(c).standard_normal((b, n), dtype=xp.float32)
+        for l in range(L):
+            h = h @ WT[l]
+            xp.maximum(h, 0, out=h)
+            if l < L - 1:
+                S1[l] += h.sum(0, dtype=xp.float64) - b * shift[l]
+            else:
+                y = h - shift32[l]
+                S1[l] += y.sum(0, dtype=xp.float64)
+                S2 += (y * y).sum(0, dtype=xp.float64)
+                sLL += (y.T @ y).astype(xp.float64)
+        done += b; c += 1
+        if log_every and time.time() - tl > log_every:
+            tl = time.time(); r = done / (tl - t0)
+            print(f"[mc:{device}] {done:,}/{N:,} ({r:,.0f}/s, eta {(N - done) / r / 60:.1f} min)", flush=True)
+    mu = asnumpy(shift + S1 / N)
+    d = asnumpy(S1[L - 1] / N)
+    varL = asnumpy(S2 / N) - d * d
+    covL = asnumpy(sLL / N) - np.outer(d, d)
+    del WT, h, S1, S2, sLL
+    free_pool()
+    out = dict(mu=mu, varL=varL, covL=covL, N=N, seed=seed, chunk=chunk, n=n, L=L,
+               seconds=time.time() - t0, git=_git_hash(), device=device)
+    out["floor"] = float(np.sum(varL) / (n * N))
+    return out
 
 
-def cached_truth(Ws, n, L, wseed, N, mc_seed, cache_dir="data/mc", **kw):
-    """Load data/mc/<key>.npz if present (verifying a weight hash), else compute and save."""
+def cache_key(n, L, wseed, N, mc_seed, tag=""):
+    return f"n{n}_L{L}_w{wseed}_N{N:.0e}_mc{mc_seed}{tag}".replace("+", "")
+
+
+def cached_truth(Ws, n, L, wseed, N, mc_seed, cache_dir="data/mc", device=None, **kw):
+    """Load data/mc/<key>.npz if present (verifying a weight hash), else compute and save.
+    device='cpu'|'cuda' selects mc_truth_device (its streams differ from mc_truth's; such caches
+    carry the suffix '_dev' so the two are never mixed)."""
     os.makedirs(cache_dir, exist_ok=True)
     wh = hashlib.sha256(np.ascontiguousarray(np.asarray(Ws, dtype=np.float32)).tobytes()).hexdigest()[:16]
-    path = os.path.join(cache_dir, cache_key(n, L, wseed, N, mc_seed) + ".npz")
+    tag = "_dev" if device is not None else ""
+    path = os.path.join(cache_dir, cache_key(n, L, wseed, N, mc_seed, tag) + ".npz")
     if os.path.exists(path):
         z = np.load(path, allow_pickle=True)
         if str(z["whash"]) == wh:
             d = {k: z[k] for k in z.files if k not in ("meta",)}
             d.update(json.loads(str(z["meta"])))
             return d
-    out = mc_truth(Ws, N, seed=mc_seed, **kw)
+    if device is not None:
+        kw.pop("moments", None)
+        out = mc_truth_device(Ws, N, seed=mc_seed, device=device, **kw)
+    else:
+        out = mc_truth(Ws, N, seed=mc_seed, **kw)
     meta = dict(N=out["N"], seed=out["seed"], n=out["n"], L=out["L"], floor=out["floor"],
                 seconds=out["seconds"], git=out["git"], wseed=wseed)
     arrs = {k: v for k, v in out.items() if isinstance(v, np.ndarray)}

@@ -41,6 +41,7 @@ import numpy as np
 from scipy.special import ndtr
 
 from arcmlp.closure.relu_moments import hermite_e, relu_raw_moments
+from arcmlp.reference.device import asnumpy, free_pool, get_array_module, resolve_device, xp_for_device
 
 LETTERS = "abcdefgh"
 
@@ -243,25 +244,47 @@ def wick_vec(m, s, k, p):
 
 def _diag_slice(T, pattern):
     """Slice of a dense symmetric tensor T (order = sum(pattern)) on a multiplicity pattern, as an
-    array over len(pattern) axes, e.g. pattern (2,1) of K3 -> S[x, y] = K3[x, x, y]."""
-    labels = []
-    for ax, m in enumerate(pattern):
-        labels += [LETTERS[ax]] * m
-    return np.einsum("".join(labels) + "->" + LETTERS[:len(pattern)], T)
+    array over len(pattern) axes, e.g. pattern (2,1) of K3 -> S[x, y] = K3[x, x, y].
+    Implemented with repeated diagonal() so that it runs unchanged on CuPy arrays."""
+    xp = get_array_module(T)
+    # axes of T are grouped consecutively by pattern position; diagonal() moves the merged axis last
+    out = T
+    groups = list(pattern)
+    pos = 0
+    order = []            # pattern position of every remaining axis of `out`, in axis order
+    for i, m in enumerate(groups):
+        order += [i] * m
+    for i, m in enumerate(groups):
+        for _ in range(m - 1):
+            ax1 = order.index(i)
+            ax2 = order.index(i, ax1 + 1)
+            out = xp.diagonal(out, axis1=ax1, axis2=ax2)   # merged axis becomes the last axis
+            del order[ax2]; del order[ax1]
+            order.append(i)
+    perm = [order.index(i) for i in range(len(groups))]
+    out = xp.transpose(out, perm) if perm != list(range(len(perm))) else out
+    return xp.ascontiguousarray(out)
 
 
 def linear_step(K, W, Kt):
+    xp = get_array_module(W)
     Z = {1: W @ K[1], 2: W @ K[2] @ W.T}
     if Kt >= 3:
         T = K[3]
         for ax in range(3):
-            T = np.tensordot(W, T, axes=([1], [ax]))   # new axis 0; cycles the axes
-        Z[3] = np.ascontiguousarray(np.transpose(T, (2, 1, 0)))
+            T2 = xp.tensordot(W, T, axes=([1], [ax]))   # new axis 0; cycles the axes
+            T = T2
+            del T2
+        Z[3] = xp.ascontiguousarray(xp.transpose(T, (2, 1, 0)))
+        del T
     if Kt >= 4:
         T = K[4]
         for ax in range(4):
-            T = np.tensordot(W, T, axes=([1], [3]))
-        Z[4] = np.ascontiguousarray(T)
+            T2 = xp.tensordot(W, T, axes=([1], [3]))
+            T = T2
+            del T2
+        Z[4] = xp.ascontiguousarray(T)
+        del T
     return Z
 
 
@@ -271,12 +294,13 @@ def _sym_axes(T, axes):
     axes = list(axes)
     if len(axes) <= 1:
         return T
+    xp = get_array_module(T)
     inner = _sym_axes(T, axes[1:])
     acc = inner.copy()
     for j in axes[1:]:
         perm = list(range(T.ndim))
         perm[axes[0]], perm[j] = perm[j], perm[axes[0]]
-        acc += np.transpose(inner, perm)
+        acc += xp.transpose(inner, perm)
     acc /= len(axes)
     return acc
 
@@ -295,9 +319,10 @@ def _symmetrize(T, p):
 class DenseProp:
     """Dense order-Kt cumulant propagation with a switchable term registry and slice hooks."""
 
-    def __init__(self, Kt=3, cap=None, dtype=None, terms_off=(), slice_hook=None, record=False):
+    def __init__(self, Kt=3, cap=None, dtype=None, terms_off=(), slice_hook=None, record=False, device=None):
         self.Kt, self.cap = Kt, (Kt - 1 if cap is None else cap)
         self.dtype = dtype
+        self.device = resolve_device(device)
         self.registry = build_registry(Kt, self.cap)
         off = set(terms_off)
         self.active = [t for t in self.registry if t.tid not in off]
@@ -308,8 +333,9 @@ class DenseProp:
     def input_slices(self, Z, layer=0):
         Kt = self.Kt
         sl = {}
+        xp = get_array_module(Z[2])
         Ct = Z[2].copy()
-        np.fill_diagonal(Ct, 0.0)
+        xp.fill_diagonal(Ct, 0.0)
         sl[(1, 1)] = Ct
         for k in range(3, Kt + 1):
             for pat in int_partitions(k):
@@ -324,14 +350,15 @@ class DenseProp:
         n = Z[1].shape[0]
         Kt = self.Kt
         dt = Z[1].dtype
-        m = Z[1].astype(np.float64)
-        s = np.sqrt(np.maximum(np.diag(Z[2]).astype(np.float64), 1e-30))
+        xp = get_array_module(Z[1])
+        m = asnumpy(Z[1]).astype(np.float64)
+        s = np.sqrt(np.maximum(asnumpy(xp.diag(Z[2])).astype(np.float64), 1e-30))
         sl = self.input_slices(Z, layer)
         wcache = {}
 
         def w(k, p):
             if (k, p) not in wcache:
-                wcache[(k, p)] = wick_vec(m, s, k, p).astype(dt)
+                wcache[(k, p)] = xp.asarray(wick_vec(m, s, k, p), dtype=dt)
             return wcache[(k, p)]
         pK = {}
         by_p = defaultdict(list)
@@ -340,7 +367,7 @@ class DenseProp:
         for d in range(1, Kt + 1):
             for p in int_partitions(d):
                 r = len(p)
-                acc = np.zeros((n,) * r, dtype=dt)
+                acc = xp.zeros((n,) * r, dtype=dt)
                 for t in by_p.get(p, []):
                     ops, subs = [], []
                     legs = [0] * r
@@ -356,7 +383,10 @@ class DenseProp:
                         subs.append(LETTERS[a])
                     expr = ",".join(subs) + "->" + LETTERS[:r]
                     coef = t.count * vec_part_coef(t.diagram)
-                    acc += coef * np.einsum(expr, *ops, optimize=True)
+                    tmp = xp.einsum(expr, *ops, optimize=True)
+                    tmp *= coef
+                    acc += tmp
+                    del tmp
                     if self.record:
                         self.records.append((layer, t.tid))
                 pK[p] = _symmetrize(acc, p) if r > 1 else acc
@@ -366,6 +396,7 @@ class DenseProp:
         n = Z[1].shape[0]
         Kt = self.Kt
         dt = Z[1].dtype
+        xp = get_array_module(Z[1])
         pK = self.power_cumulants(Z, layer)
         # ordinary cumulant slices on distinct vertices
         Kslices = {}
@@ -376,7 +407,7 @@ class DenseProp:
                 if len(form) == 1 and form[0][0] == 1.0 and form[0][1] == ((tuple(range(r)), q),):
                     Kslices[q] = pK[q]          # all multiplicities 1: cumulant == power cumulant
                     continue
-                out = np.zeros((n,) * r, dtype=dt)
+                out = xp.zeros((n,) * r, dtype=dt)
                 for coef, mono in form:
                     ops, subs = [], []
                     for verts, powv in mono:
@@ -384,26 +415,31 @@ class DenseProp:
                         order = sorted(range(len(verts)), key=lambda i: -powv[i])
                         ops.append(pK[pw])
                         subs.append("".join(LETTERS[verts[i]] for i in order))
-                    out += coef * np.einsum(",".join(subs) + "->" + LETTERS[:r], *ops)
+                    tmp = xp.einsum(",".join(subs) + "->" + LETTERS[:r], *ops)
+                    tmp = tmp * coef if tmp.ndim == 0 else tmp.__imul__(coef)
+                    out += tmp
+                    del tmp
                 Kslices[q] = _symmetrize(out, q) if r > 1 else out
+        del pK
         return self._assemble(Kslices, n, dt)
 
     def _assemble(self, S, n, dt):
+        xp = get_array_module(S[(1,)])
         K = {1: S[(1,)].copy()}
         C = S[(1, 1)].copy()
-        np.fill_diagonal(C, S[(2,)])
+        xp.fill_diagonal(C, S[(2,)])
         K[2] = C
-        idx = np.arange(n)
+        idx = xp.arange(n)
         if self.Kt >= 3:
-            T = S[(1, 1, 1)].copy()
-            I, J = np.ix_(idx, idx)
+            T = S[(1, 1, 1)]          # in place: the slice dict is not used again
+            I, J = xp.ix_(idx, idx)
             A = S[(2, 1)]
             T[I, I, J] = A; T[I, J, I] = A; T[J, I, I] = A
             T[idx, idx, idx] = S[(3,)]
             K[3] = T
         if self.Kt >= 4:
             T = S[(1, 1, 1, 1)]          # in place (largest array)
-            I3 = np.ix_(idx, idx, idx)
+            I3 = xp.ix_(idx, idx, idx)
             i, j, k = I3
             A = S[(2, 1, 1)]
             for pos in [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]:
@@ -411,7 +447,7 @@ class DenseProp:
                 rest = [x for x in range(4) if x not in pos]
                 ind[pos[0]] = i; ind[pos[1]] = i; ind[rest[0]] = j; ind[rest[1]] = k
                 T[tuple(ind)] = A
-            I2, J2 = np.ix_(idx, idx)
+            I2, J2 = xp.ix_(idx, idx)
             B22 = S[(2, 2)]
             T[I2, I2, J2, J2] = B22; T[I2, J2, I2, J2] = B22; T[I2, J2, J2, I2] = B22
             B31 = S[(3, 1)]
@@ -423,22 +459,25 @@ class DenseProp:
     def run(self, Ws, return_all=False):
         n = Ws[0].shape[0]
         dt = self.dtype or (np.float64 if n <= 64 else np.float32)
-        K = {1: np.zeros(n, dt), 2: np.eye(n, dtype=dt)}
+        xp = xp_for_device(self.device)
+        K = {1: xp.zeros(n, dt), 2: xp.eye(n, dtype=dt)}
         if self.Kt >= 3:
-            K[3] = np.zeros((n,) * 3, dt)
+            K[3] = xp.zeros((n,) * 3, dt)
         if self.Kt >= 4:
-            K[4] = np.zeros((n,) * 4, dt)
+            K[4] = xp.zeros((n,) * 4, dt)
         mus, states = [], []
         for l, W in enumerate(Ws):
-            Z = linear_step(K, W.astype(dt), self.Kt)
+            Z = linear_step(K, xp.asarray(W, dtype=dt), self.Kt)
             del K
+            free_pool()
             K = self.relu_step(Z, layer=l)
             del Z
-            mus.append(K[1].astype(np.float64))
+            free_pool()
+            mus.append(asnumpy(K[1]).astype(np.float64))
             if return_all:
                 states.append({k: v.copy() for k, v in K.items()})
         return (np.array(mus), K, states) if return_all else (np.array(mus), K)
 
 
-def propagate(Ws, K=3, terms_off=(), cap=None, slice_hook=None, dtype=None, return_all=False):
-    return DenseProp(Kt=K, cap=cap, dtype=dtype, terms_off=terms_off, slice_hook=slice_hook).run(Ws, return_all)
+def propagate(Ws, K=3, terms_off=(), cap=None, slice_hook=None, dtype=None, return_all=False, device=None):
+    return DenseProp(Kt=K, cap=cap, dtype=dtype, terms_off=terms_off, slice_hook=slice_hook, device=device).run(Ws, return_all)
