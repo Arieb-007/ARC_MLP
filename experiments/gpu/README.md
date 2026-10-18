@@ -60,3 +60,15 @@ same for the κ3 (2,1) matrix and the κ4 memory B, at 1024×16). Pre-registered
 < 15 % of the off-diagonal energy and 64 anchors explain < 10 % of a neuron's variance; the spike-64
 chain is > 10× worse than the full chain. (3-point moment-matched quadrature for the ReLU mean was
 rejected by arithmetic: it gives 0.289 instead of 0.399 for a standard Gaussian.)
+
+## Round 3 (`--profile round3`, ~2–4 h): scoping the factored-κ4 program
+
+Three measurements at depth 16 with device MC truth (no dataset needed): (1) the K4c3/K3c2 point at
+n = 256 (5 seeds; the dense K=4 paths are now memory-lean, ~35 GB peak) to fix the width exponent;
+(2) `gen:A` — κ4 born only at layers ≤ A — how many source generations a factored chain must carry;
+(3) `fam:…` — which cost-3 diagram families (single random-sign block, κ3+edge, paired κ4+edge,
+three edges) are needed. Kill rules: ratio at 256 > 0.09; A ≥ 6 needed; no droppable family.
+
+```bash
+bash scripts/gpu_run.sh --profile round3
+```

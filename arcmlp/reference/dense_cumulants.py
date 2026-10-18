@@ -266,7 +266,10 @@ def _diag_slice(T, pattern):
     return xp.ascontiguousarray(out)
 
 
-def linear_step(K, W, Kt):
+K4_CHUNK_ROWS = 32   # rows per chunk of the n^4 mode products and term accumulations (memory, not math)
+
+
+def linear_step(K, W, Kt, consume=False):
     xp = get_array_module(W)
     Z = {1: W @ K[1], 2: W @ K[2] @ W.T}
     if Kt >= 3:
@@ -278,14 +281,61 @@ def linear_step(K, W, Kt):
         Z[3] = xp.ascontiguousarray(xp.transpose(T, (2, 1, 0)))
         del T
     if Kt >= 4:
+        n = W.shape[0]
         T = K[4]
+        if consume:
+            del K[4]                       # the caller's state tensor is released as soon as possible
         for ax in range(4):
-            T2 = xp.tensordot(W, T, axes=([1], [3]))
-            T = T2
-            del T2
-        Z[4] = xp.ascontiguousarray(T)
+            out = xp.empty((n,) * 4, dtype=T.dtype)
+            step = max(1, min(n, K4_CHUNK_ROWS))
+            for i0 in range(0, n, step):   # out[i, ...] = sum_j W[i, j] T[..., j] (mode product on the last axis)
+                out[i0:i0 + step] = xp.tensordot(W[i0:i0 + step], T, axes=([1], [3]))
+            del T
+            T = out
+            del out
+        Z[4] = T
         del T
     return Z
+
+
+def _einsum_acc(acc, coef, expr, ops, out_letter):
+    """acc += coef * einsum(expr, *ops), computed in row chunks of the first output axis so that no
+    second n^4 temporary exists (used for order-4 outputs)."""
+    xp = get_array_module(acc)
+    n = acc.shape[0]
+    ins, outs = expr.split("->")
+    subs = ins.split(",")
+    step = max(1, min(n, K4_CHUNK_ROWS))
+    for i0 in range(0, n, step):
+        sl = slice(i0, i0 + step)
+        ops_c = []
+        for sub, op in zip(subs, ops):
+            if out_letter in sub:
+                ax = sub.index(out_letter)
+                ops_c.append(op[(slice(None),) * ax + (sl,)])
+            else:
+                ops_c.append(op)
+        tmp = xp.einsum(expr, *ops_c, optimize=True)
+        tmp *= coef
+        acc[sl] += tmp
+        del tmp
+
+
+def _sym4_lean(T):
+    """Symmetrize a 4-index tensor with one extra buffer: first each slab T[a] over its three axes
+    (coset recursion on n^3 slabs), then out[a] = (T[a] + 3 T[:, a]) / 4 using that symmetry."""
+    xp = get_array_module(T)
+    n = T.shape[0]
+    for a in range(n):
+        T[a] = _symmetrize(T[a], (1, 1, 1))
+    out = xp.empty_like(T)
+    for a in range(n):
+        # the three terms with first index b, c or d are the three placements of the strided slab
+        # T[:, a] (symmetric in its last two axes), i.e. 3 * Sym_3(T[:, a])
+        out[a] = T[a]
+        out[a] += 3.0 * _symmetrize(T[:, a], (1, 1, 1))
+        out[a] *= 0.25
+    return out
 
 
 def _sym_axes(T, axes):
@@ -328,6 +378,7 @@ class DenseProp:
         self.active = [t for t in self.registry if t.tid not in off]
         self.slice_hook = slice_hook          # f(layer, Z: dict order->dense tensor, slices: dict) -> None
         self.record = record
+        self.release_z4 = True                # run(): free the n^4 pre-activation tensor before symmetrizing
         self.records = []
 
     def input_slices(self, Z, layer=0):
@@ -344,9 +395,10 @@ class DenseProp:
             self.slice_hook(layer, Z, sl)
         return sl
 
-    def power_cumulants(self, Z, layer=0, terms=None):
+    def power_cumulants(self, Z, layer=0, terms=None, release=False):
         """pK slices (dict p -> array over len(p) distinct-neuron axes) from the active terms
-        (or the given list of terms)."""
+        (or the given list of terms). release=True frees Z[4] once the order-4 terms are done
+        (relu_step inside run(); never when a caller reuses Z)."""
         n = Z[1].shape[0]
         Kt = self.Kt
         dt = Z[1].dtype
@@ -383,13 +435,26 @@ class DenseProp:
                         subs.append(LETTERS[a])
                     expr = ",".join(subs) + "->" + LETTERS[:r]
                     coef = t.count * vec_part_coef(t.diagram)
-                    tmp = xp.einsum(expr, *ops, optimize=True)
-                    tmp *= coef
-                    acc += tmp
-                    del tmp
+                    if r == 4:
+                        _einsum_acc(acc, coef, expr, ops, "a")
+                    else:
+                        tmp = xp.einsum(expr, *ops, optimize=True)
+                        tmp *= coef
+                        acc += tmp
+                        del tmp
                     if self.record:
                         self.records.append((layer, t.tid))
-                pK[p] = _symmetrize(acc, p) if r > 1 else acc
+                if r == 4:
+                    # the pre-activation kappa4 tensor is no longer needed: free it before the symmetrizer's buffer
+                    if release and 4 in Z and sl.get((1, 1, 1, 1)) is Z[4]:
+                        sl.pop((1, 1, 1, 1), None)
+                        del Z[4]
+                        free_pool()
+                    pK[p] = _sym4_lean(acc)
+                    del acc
+                    free_pool()
+                else:
+                    pK[p] = _symmetrize(acc, p) if r > 1 else acc
         return pK
 
     def relu_step(self, Z, layer=0):
@@ -397,7 +462,7 @@ class DenseProp:
         Kt = self.Kt
         dt = Z[1].dtype
         xp = get_array_module(Z[1])
-        pK = self.power_cumulants(Z, layer)
+        pK = self.power_cumulants(Z, layer, release=self.release_z4)
         # ordinary cumulant slices on distinct vertices
         Kslices = {}
         for d in range(1, Kt + 1):
@@ -467,7 +532,7 @@ class DenseProp:
             K[4] = xp.zeros((n,) * 4, dt)
         mus, states = [], []
         for l, W in enumerate(Ws):
-            Z = linear_step(K, xp.asarray(W, dtype=dt), self.Kt)
+            Z = linear_step(K, xp.asarray(W, dtype=dt), self.Kt, consume=True)
             del K
             free_pool()
             K = self.relu_step(Z, layer=l)

@@ -51,6 +51,10 @@ case "$PROFILE" in
          STRUCT_IDX=${STRUCT_IDX:-0-2}
          K4_N=${K4_N:-"128 160 192"}; K4_SEEDS=${K4_SEEDS:-0-4}; K4_NMC=${K4_NMC:-1e7}; K4_CONFIGS=${K4_CONFIGS:-round2}; MC_IDX=${MC_IDX:-0}; MC_N=${MC_N:-1e6}
          TRAIN_IDX=${TRAIN_IDX:-20-39}; TEST_IDX=${TEST_IDX:-0-19}; SWEEP_VARIANTS=${SWEEP_VARIANTS:-""}; STAGES=${STAGES_OVERRIDE:-setup,smoke,data,cpu,gpu,k4L8,structure,report};;
+  round3) K4_N=${K4_N:-"256"}; K4_SEEDS=${K4_SEEDS:-0-4}; K4_NMC=${K4_NMC:-1e7}; K4_CONFIGS=${K4_CONFIGS:-K3c2,K4c2,K4c3}
+         R3_N=${R3_N:-"192 256"}; R3_SEEDS=${R3_SEEDS:-0-2}; R3_CONFIGS=${R3_CONFIGS:-round3}
+         FETCH_IDX=${FETCH_IDX:-0-0}; BASE_IDX=${BASE_IDX:-0-0}; SWEEP_IDX=0-0; CONFIRM_IDX=0-0; DENSE_IDX=0-0; DENSE_VARIANTS=K2; MC_IDX=0; MC_N=1e6
+         TRAIN_IDX=0-0; TEST_IDX=0-0; SWEEP_VARIANTS=""; STAGES=${STAGES_OVERRIDE:-setup,smoke,k4,k4r3,report};;
   *) echo "unknown profile $PROFILE" >&2; exit 2;;
 esac
 [ "$K4_CONFIGS" = all ] && K4_CONFIGS="K3c2,K3c3,K4c2,K4c3,K4c3-no31,K4c3-no211,K4c3-no1111,paired_c3,paired_c3+31,paired_c3+211,coh2,ex4c2"
@@ -181,6 +185,11 @@ if want gpu; then
   fi
 fi
 
+if want k4r3 && { [ "$DEVICE" = cuda ] || [ "$ALLOW_CPU_GPU_STAGES" = 1 ]; }; then
+  # round 3: kappa4 generations and cost-3 diagram families at depth 16
+  # shellcheck disable=SC2086
+  stage k4r3 21600 "$PY" experiments/gpu/k4_gonogo.py --n ${R3_N:-192} --L 16 --seeds "${R3_SEEDS:-0-2}" --N "$K4_NMC" --device "$DEVICE" --configs "${R3_CONFIGS:-round3}" --out "$GD/k4" --mc-cache "$GD/mc"
+fi
 if want k4L8 && { [ "$DEVICE" = cuda ] || [ "$ALLOW_CPU_GPU_STAGES" = 1 ]; }; then
   # depth-8 ladder for the width exponent of the exact chain (3 seeds)
   # shellcheck disable=SC2086

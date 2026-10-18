@@ -23,6 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import ROOT, parse_idx, write_json  # noqa: E402
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "experiments"))
+from arcmlp.estimators.ablations import ALL_FAMILIES, FamilyProp, GenProp  # noqa: E402
 from arcmlp.estimators.cc_proxy import CC_CONFIGS, CCProp  # noqa: E402
 from arcmlp.estimators.coherent_even import CoherentEvenProp  # noqa: E402
 from arcmlp.reference import dense_cumulants as dc  # noqa: E402
@@ -50,9 +51,18 @@ CONFIGS = {
 }
 CONFIGS.update({f"cc:{k}": ("cc", k) for k in CC_CONFIGS if k != "K4c3"})
 ROUND2 = "K3c2,K3c3,K4c2,K4c3,paired_c3,coh2,ex4c2,coh2_pboth,ex4c2_pboth," + ",".join(f"cc:{k}" for k in CC_CONFIGS if k != "K4c3")
+# round 3: kappa4 generations (gen:A = births only at layers <= A) and cost-3 diagram families
+# (fam:-x = all but family x; fam:+x+y = cost<=2 terms plus the named families)
+ROUND3 = "K3c2,K4c2,K4c3,gen:1,gen:2,gen:3,gen:4,gen:6," + ",".join(f"fam:-{f}" for f in ALL_FAMILIES[:4]) + ",fam:+rs,fam:+rs+k3e,fam:+rs+c3,fam:+rs+k3e+c3,fam:+k3e+c3"
 
 
 def make_prop(cfg, device, Ws=None):
+    if cfg.startswith("gen:"):
+        return GenProp(int(cfg[4:]), device=device)
+    if cfg.startswith("fam:-"):
+        return FamilyProp([f for f in ALL_FAMILIES if f != cfg[5:]], device=device)
+    if cfg.startswith("fam:+"):
+        return FamilyProp([f for f in cfg[5:].split("+") if f], device=device)
     feats = CONFIGS[cfg]
     if isinstance(feats, tuple) and feats[0] == "cc":
         m211, m31, m1111, terms = CC_CONFIGS[feats[1]]
@@ -84,11 +94,14 @@ def main():
     ap.add_argument("--out", default="data/gpu/k4")
     ap.add_argument("--mc-cache", default="data/gpu/mc")
     ap.add_argument("--chunk", type=int, default=65536)
+    ap.add_argument("--chunk-rows", type=int, default=0, help="rows per chunk of the n^4 operations (memory)")
     a = ap.parse_args()
     dev = resolve_device(a.device)
     os.makedirs(a.out, exist_ok=True)
     print("device:", json.dumps(device_info(dev), default=str), flush=True)
-    cfgs = [c.strip() for c in (ROUND2 if a.configs == "round2" else a.configs).split(",") if c.strip()]
+    cfgs = [c.strip() for c in {"round2": ROUND2, "round3": ROUND3}.get(a.configs, a.configs).split(",") if c.strip()]
+    if a.chunk_rows:
+        dc.K4_CHUNK_ROWS = a.chunk_rows
     for n in a.n:
         for sd in parse_idx(a.seeds):
             path = os.path.join(a.out, f"n{n}_L{a.L}_s{sd}.json")

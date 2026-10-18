@@ -263,6 +263,35 @@ def main():
                     fx = lambda x: f"{x:.2f}" if np.isfinite(x) else "—"
                     L.append(f"| {n} | {Lr} | {cfg} | {fr(r4)} | {fx(r3[0])} | {fx(rec_)} | {fx(rec['r2_211'])} | {fx(rec['r2_31'])} | {fx(rec['corr211'])} |")
             L.append("")
+        # round 3: kappa4 generations and cost-3 diagram families
+        r3 = sorted({c for r in k4 for c in r["v"] if c.startswith("gen:") or c.startswith("fam:")},
+                    key=lambda c: (c[:4], len(c), c))
+        if r3:
+            L += ["", "### Round 3 — κ4 generations (gen:A = κ4 born only at layers ≤ A) and cost-3 diagram families (fam:−x = all but x; fam:+… = cost ≤ 2 terms plus the named families)", "",
+                  "Families: rs = single random-sign κ4 block, k3e = κ3 block + edge, p4e = paired κ4 block + edge, c3 = three edges. "
+                  "'recovery' = share of the log-gap K3c2 → K4c3 that the config achieves (1 = as good as K4c3, 0 = as bad as K3c2).", "",
+                  "| n | L | config | / K4c3 [95% CI] | / K3c2 | recovery of K3c2→K4c3 gap | s/run |", "|---|---|---|---|---|---|---|"]
+            out["k4_r3"] = {}
+            for (n, Lr), rows in sorted(byn.items()):
+                def col(cfg):
+                    return [r["v"].get(cfg, {}).get("mse") for r in rows]
+                def ratio(a, b):
+                    A, Bv = col(a), col(b)
+                    ok = [(x, y) for x, y in zip(A, Bv) if x is not None and y is not None and x > 0 and y > 0]
+                    return paired_log_ratio([x for x, _ in ok], [y for _, y in ok]) if ok else (np.nan,) * 4
+                gap = ratio("K3c2", "K4c3")
+                for cfg in r3:
+                    if not any(cfg in r["v"] for r in rows):
+                        continue
+                    r4, r3c = ratio(cfg, "K4c3"), ratio(cfg, "K3c2")
+                    rec_ = 1.0 - np.log(r4[0]) / np.log(gap[0]) if np.isfinite(r4[0]) and np.isfinite(gap[0]) and gap[0] > 1 else np.nan
+                    sec = float(np.mean([r["v"][cfg].get("seconds") or 0 for r in rows if cfg in r["v"]]))
+                    out["k4_r3"][f"n{n}_L{Lr}_{cfg}"] = dict(n=n, L=Lr, cfg=cfg, ratio_K4c3=r4[:3], ratio_K3c2=r3c[:3], recovery=rec_, seconds=sec)
+                    fr = lambda t: f"{t[0]:.2f} [{t[1]:.2f}, {t[2]:.2f}]" if np.isfinite(t[0]) else "—"
+                    fx = lambda x: f"{x:.2f}" if np.isfinite(x) else "—"
+                    L.append(f"| {n} | {Lr} | {cfg} | {fr(r4)} | {fx(r3c[0])} | {fx(rec_)} | {sec:.0f} |")
+            L += ["", "Pre-registered kill rules for the factored-κ4 program: K4c3/K3c2 at n = 256 (L = 16) > 0.09; or gen:A needs A ≥ 6 for ≥ 70 % recovery; "
+                  "or no family can be dropped (every fam:−x loses ≥ 50 % of the gap).", ""]
         l16 = [r for r in out["k4"].values() if isinstance(r, dict) and r.get("L") == 16] or [r for r in out["k4"].values() if isinstance(r, dict)]
         big = max(l16, key=lambda r: r["n"])
         r0 = big["ratio_K4c3_K3c2"]
