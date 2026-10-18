@@ -263,10 +263,11 @@ def main():
                     fx = lambda x: f"{x:.2f}" if np.isfinite(x) else "—"
                     L.append(f"| {n} | {Lr} | {cfg} | {fr(r4)} | {fx(r3[0])} | {fx(rec_)} | {fx(rec['r2_211'])} | {fx(rec['r2_31'])} | {fx(rec['corr211'])} |")
             L.append("")
-        big = max(out["k4"].values(), key=lambda r: r["n"])
+        l16 = [r for r in out["k4"].values() if isinstance(r, dict) and r.get("L") == 16] or [r for r in out["k4"].values() if isinstance(r, dict)]
+        big = max(l16, key=lambda r: r["n"])
         r0 = big["ratio_K4c3_K3c2"]
         verdict = "no data" if not np.isfinite(r0[0]) else ("**GO** (ratio below the kill threshold)" if r0[0] <= K4_KILL else "**NO-GO** (ratio above the kill threshold)")
-        L += ["", f"Verdict at the largest width run (n = {big['n']}): K4c3/K3c2 = {f3(r0)} vs kill threshold {K4_KILL} → {verdict}. "
+        L += ["", f"Verdict at the largest width run (n = {big['n']}, L = {big['L']}): K4c3/K3c2 = {f3(r0)} vs kill threshold {K4_KILL} → {verdict}. "
               "The width trend of the ratio (≈ 4× per doubling at L = 8 in results/2026-10-17_w7_coherent_even.md) is what extrapolates to n = 1024; "
               "a ratio that does not fall with n at depth 16 falsifies the extrapolation.", ""]
         out["k4"]["verdict"] = verdict

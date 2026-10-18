@@ -62,3 +62,13 @@ nominating [AIcrowd 336554](https://www.aicrowd.com/challenges/arc-white-box-est
 - Decision: nominate AIcrowd 336554 (5.23e-9); write-up (Oct 28) uses the 1024 measurements; the
   factored (2,1,1) κ4 chain is the post-deadline program. Next acceptance criterion: write-up draft
   in docs/writeup/ with the n = 1024 tables.
+
+## 2026-10-18: GPU round 2 — see results/2026-10-18_gpu_round2_analysis.md
+
+- [measured] z-side conditional-coherent proxies: (3,1) ≈ complete (oracle 88–90 %), (2,1,1) partial and
+  decreasing with width (74 → 55 % at n = 128 → 192) inside the dense chain; nothing in the light chain at
+  1024 (coh2_pboth 1.85× V29). The effect lives in the transported random-sign κ4 memory.
+- [measured] Covariance at 1024×16 = rank-16 spike (85 % of off-diagonal energy at layer 16) + bulk; the
+  spiked closure is 670–6000× worse: the bulk carries the mean. Spectral energy is the wrong metric.
+- K4 ladder (5 seeds, L = 16): 0.34/0.22/0.13 at n = 128/160/192 → GO stands; depth 8: 0.06/0.04/0.03.
+- Next: round 3 = structured κ4 memory oracle (κ4(h) as b, B, λ⊗C forms) at n ≤ 192; write-up.

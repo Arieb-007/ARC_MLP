@@ -1,0 +1,193 @@
+# GPU round 2 — proxies, spiked covariance, ladders (run 2026-10-18 on Areeb's A40; verbatim as received)
+
+> LLM-generated record (Claude Code). Reading: `results/2026-10-18_gpu_round2_analysis.md`. The K4 'verdict' line below quotes the depth-8 row by a report bug fixed afterwards; the depth-16 value at n = 192 is 0.13.
+
+> LLM-generated record (Claude Code) for team Arieb-007. Produced end-to-end by `scripts/gpu_run.sh`
+> (stages in `experiments/gpu/`). Truth = the dataset's Monte-Carlo reference (organizers' bake) unless
+> stated; MSE = final-layer MSE against it; score = MSE × max(0.1, C/B) per MLP, averaged.
+
+## Environment
+
+- GPU: NVIDIA A40, 49140 MiB, 580.126.20
+NVIDIA A40, 49140 MiB, 580.126.20
+NVIDIA A40, 49140 MiB, 580.126.20
+NVIDIA A40, 49140 MiB, 580.126.20; CUDA Version: 13.0; device used: cuda; cupy: 14.2.0
+- CPU: 64 cores, 3.8e+02 GB; python 3.13.11; profile `round2`
+- commit 134dcfbe15d5 (dirty=True); versions {"numpy": "2.4.6", "scipy": "1.18.1", "flopscope": "0.12.3", "whestbench": "0.16.2", "opt-einsum": "3.4.0", "threadpoolctl": "3.7.0"}
+- dataset: hf://aicrowd/arc-whestbench-public-2026@v2-phase2 split mini (100 MLPs; reference n_samples = 1000000000; reference MC floor ≈ 7.6e-11 per neuron — every MSE below includes it)
+
+| stage | state | seconds | note |
+|---|---|---|---|
+| setup | ok | 19 | cupy 14.2.0 |
+| smoke | ok | 9 |  |
+| data | ok | 14 |  |
+| mc_check | ok | 3 |  |
+| dense | ok | 2931 |  |
+| k4 | ok | 1886 |  |
+| cpu_baseline | ok | 0 | idx 0-39 |
+| sweep_s6 | ok | 154 | V26_STRASSEN=6 |
+| sweep_lam105 | ok | 131 | V17_LAM_SCALE=1.05 |
+| corrector | ok | 88 |  |
+| report | ok | 1 |  |
+| sweep_rold256 | ok | 120 | V21_R_OLD=256 |
+| sweep_rold2_128 | ok | 153 | V24_R_OLD2=128 |
+| sweep_age3 | ok | 173 | V21_AGE_OLD=3 |
+| sweep_age2off | ok | 153 | V24_AGE_OLD2=0 |
+| sweep_lam085 | ok | 115 | V17_LAM_SCALE=0.85 |
+| sweep_nowk431 | ok | 145 | V17_NO_WK431=1 |
+| k4L8 | ok | 128 |  |
+| structure | ok | 105 |  |
+
+## V29 (+ leaf 8) baseline on the dataset reference
+
+40 MLPs (idx 0–39; 0 failed): raw MSE **2.261e-08** [2.18e-08, 2.34e-08], C/B 0.2592, score 5.859e-09 [5.64e-09, 6.07e-09]; residual max 1.887 s (parallel CPU runs — not the grader's timing), wall 307 s/MLP.
+Grader record for comparison: AIcrowd 336554 raw 2.13e-8 at C/B 0.245 → 5.23e-9.
+
+Mean all-layer MSE per layer (V29 vs reference): 6.9e-10, 7.1e-10, 1.1e-09, 1.8e-09, 2.8e-09, 3.9e-09, 5.2e-09, 6.7e-09, 8.1e-09, 9.7e-09, 1.2e-08, 1.3e-08, 1.5e-08, 1.8e-08, 2.0e-08, 2.3e-08
+
+## Knob sweep (Algorithm D): V29 variants on the same MLPs, paired against the baseline
+
+| variant | env | n | raw MSE | C/B | score | MSE ratio vs base [95% CI] | score ratio vs base [95% CI] |
+|---|---|---|---|---|---|---|---|
+| age2off | `V24_AGE_OLD2=0` | 20 | 2.203e-08 | 0.2714 | 5.979e-09 | 0.988 [0.983, 0.993] | **1.034** [1.029, 1.039] |
+| age3 | `V21_AGE_OLD=3` | 20 | 2.519e-08 | 0.2486 | 6.261e-09 | 1.129 [1.101, 1.155] | **1.083** [1.056, 1.108] |
+| lam085 | `V17_LAM_SCALE=0.85` | 20 | 2.265e-08 | 0.2592 | 5.871e-09 | 1.015 [1.009, 1.021] | **1.015** [1.009, 1.021] |
+| lam105 | `V17_LAM_SCALE=1.05` | 20 | 2.245e-08 | 0.2592 | 5.819e-09 | 1.007 [1.000, 1.012] | **1.007** [1.000, 1.012] |
+| nowk431 | `V17_NO_WK431=1` | 20 | 2.624e-08 | 0.2590 | 6.796e-09 | 1.175 [1.140, 1.210] | **1.174** [1.139, 1.209] |
+| rold256 | `V21_R_OLD=256` | 20 | 2.947e-08 | 0.2295 | 6.764e-09 | 1.320 [1.291, 1.352] | **1.169** [1.143, 1.198] |
+| rold2_128 | `V24_R_OLD2=128` | 20 | 2.573e-08 | 0.2489 | 6.402e-09 | 1.152 [1.131, 1.176] | **1.106** [1.086, 1.129] |
+| s6 | `V26_STRASSEN=6` | 20 | 2.231e-08 | 0.2592 | 5.783e-09 | 1.000 [1.000, 1.000] | **1.000** [1.000, 1.000] |
+
+Best score ratio: **s6** (1.000 [1.000, 1.000]); a ratio whose CI excludes 1 is a real change on these networks; the chosen knob must be confirmed on held-out MLPs (the `confirm_*` rows, if present, are that confirmation).
+
+## Dense / light references at the official shape (GPU), against the dataset reference
+
+| variant | n MLPs | raw MSE [95% CI] | ratio to V29 [95% CI] (paired) | ratio to K3c2 (paired) | s/MLP | peak GB | errors |
+|---|---|---|---|---|---|---|---|
+| K2 | 10 | 4.445e-06 [3.78e-06, 5.08e-06] | 187.630 [160.771, 216.919] (n=10) | 10.110 [8.582, 11.954] | 0 | 4.0 | 0 |
+| K3c2 | 10 | 4.291e-07 [3.99e-07, 4.67e-07] | 18.560 [16.956, 20.340] (n=10) | — | 32 | 16.0 | 0 |
+| K3c3 | 10 | 4.098e-07 [3.82e-07, 4.43e-07] | 17.740 [16.415, 19.240] (n=10) | 0.956 [0.944, 0.970] | 53 | 16.0 | 0 |
+| coh2 | 20 | 3.846e-08 [3.65e-08, 4.05e-08] | 1.721 [1.657, 1.794] (n=20) | 0.092 [0.082, 0.102] | 24 | 24.0 | 0 |
+| coh2_p211 | 20 | 3.938e-08 [3.75e-08, 4.14e-08] | 1.762 [1.697, 1.836] (n=20) | 0.094 [0.086, 0.104] | 18 | 28.0 | 0 |
+| coh2_p31 | 20 | 4.147e-08 [3.94e-08, 4.36e-08] | 1.856 [1.790, 1.932] (n=20) | 0.102 [0.091, 0.113] | 15 | 24.0 | 0 |
+| coh2_pboth | 20 | 4.122e-08 [3.92e-08, 4.33e-08] | 1.845 [1.774, 1.921] (n=20) | 0.101 [0.092, 0.111] | 18 | 28.0 | 0 |
+| coh2_spike0 | 20 | 2.311e-04 [2.17e-04, 2.47e-04] | 10303.063 [9628.562, 10993.788] (n=20) | 533.307 [472.647, 597.590] | 15 | 24.0 | 0 |
+| coh2_spike256 | 20 | 2.574e-05 [2.38e-05, 2.78e-05] | 1142.065 [1063.503, 1222.681] (n=20) | 62.274 [53.029, 73.390] | 15 | 24.0 | 0 |
+| coh2_spike64 | 20 | 7.203e-05 [6.78e-05, 7.65e-05] | 3215.301 [3021.437, 3428.602] (n=20) | 173.843 [152.764, 196.482] | 16 | 24.0 | 0 |
+| ex4c2 | 20 | 3.537e-08 [3.38e-08, 3.71e-08] | 1.584 [1.530, 1.647] (n=20) | 0.084 [0.076, 0.093] | 24 | 24.0 | 0 |
+| ex4c2_pboth | 20 | 3.824e-08 [3.65e-08, 4.00e-08] | 1.713 [1.649, 1.781] (n=20) | 0.093 [0.085, 0.102] | 18 | 28.0 | 0 |
+| exallc2_pboth | 20 | 3.756e-08 [3.58e-08, 3.92e-08] | 1.683 [1.620, 1.751] (n=20) | 0.092 [0.083, 0.100] | 18 | 28.0 | 0 |
+
+Orientation check: DenseProp(K=2) vs the starter-kit covariance closure on the dataset's weights, max |Δ| = 1.8e-06 (float32 chains: ~1e-5 or less is consistent; a wrong orientation gives O(0.1)).
+
+**Pre-registered predictions (plan of 2026-10-17, from the n ≤ 256 scaling fits):**
+
+- dense K=3 cap 2 at 1024x16 = 2.8e-7 [1.9e-7, 4.2e-7] (n^-2.29 from n = 256, L = 16): measured **4.291e-07** [3.99e-07, 4.67e-07] → **falsified** (outside the pre-registered interval)
+- K=3 + coherent kappa4 at 1024x16 = 1.5e-8 [0.9e-8, 2.6e-8] (n^-3.71), i.e. below V29's 2.13e-8: measured **3.846e-08** [3.65e-08, 4.05e-08] → **falsified** (outside the pre-registered interval)
+Error structure vs V29 (same final-layer neurons): K2: corr(e_K2, e_V29) = -0.03, MSE of the 50/50 blend / V29 = 47.011 [40.252, 54.381] (n=10); K3c2: corr(e_K3c2, e_V29) = +0.14, MSE of the 50/50 blend / V29 = 5.174 [4.709, 5.644] (n=10); K3c3: corr(e_K3c3, e_V29) = +0.10, MSE of the 50/50 blend / V29 = 4.886 [4.494, 5.291] (n=10); coh2: corr(e_coh2, e_V29) = +0.73, MSE of the 50/50 blend / V29 = 1.156 [1.131, 1.185] (n=20); coh2_p211: corr(e_coh2_p211, e_V29) = +0.73, MSE of the 50/50 blend / V29 = 1.178 [1.152, 1.206] (n=20); coh2_p31: corr(e_coh2_p31, e_V29) = +0.71, MSE of the 50/50 blend / V29 = 1.199 [1.169, 1.231] (n=20); coh2_pboth: corr(e_coh2_pboth, e_V29) = +0.73, MSE of the 50/50 blend / V29 = 1.208 [1.176, 1.241] (n=20); coh2_spike0: corr(e_coh2_spike0, e_V29) = -0.05, MSE of the 50/50 blend / V29 = 2573.533 [2404.041, 2747.074] (n=20); coh2_spike256: corr(e_coh2_spike256, e_V29) = -0.01, MSE of the 50/50 blend / V29 = 285.551 [266.032, 305.705] (n=20); coh2_spike64: corr(e_coh2_spike64, e_V29) = -0.05, MSE of the 50/50 blend / V29 = 802.604 [753.714, 856.109] (n=20); ex4c2: corr(e_ex4c2, e_V29) = +0.73, MSE of the 50/50 blend / V29 = 1.106 [1.085, 1.129] (n=20); ex4c2_pboth: corr(e_ex4c2_pboth, e_V29) = +0.73, MSE of the 50/50 blend / V29 = 1.158 [1.129, 1.187] (n=20); exallc2_pboth: corr(e_exallc2_pboth, e_V29) = +0.73, MSE of the 50/50 blend / V29 = 1.143 [1.115, 1.173] (n=20).
+
+- coh2 / V29 paired ratio = 1.721 [1.657, 1.794]: a clean K=3 + coherent κ4 does not beat V29 on these networks.
+
+## Monte-Carlo cross-check of the dataset reference (our device MC vs the organizers' means)
+
+| idx | N ours | MSE(ours, ref) | floor ours | floor ref (n_samples) | expected = sum | ratio | var/neuron | s |
+|---|---|---|---|---|---|---|---|---|
+| 0 | 1e+07 | 8.923e-09 | 7.867e-09 | 7.867e-11 | 7.945e-09 | 1.12 | 0.079 | 46 |
+| 1 | 1e+08 | 8.276e-10 | 8.599e-10 | 8.599e-11 | 9.459e-10 | 0.87 | 0.086 | 449 |
+
+A ratio near 1 means both references are unbiased estimates of the same means at their stated sample counts; a ratio ≫ 1 would mean the dataset reference (or our MC) is biased or its n_samples is not what the metadata says.
+
+## Factored-κ4 go/no-go (Algorithm A): dense K=4 cap 3 at depth 16 vs device MC truth
+
+Kill rule (pre-registered): K4c3 / K3c2 > 0.25 at the largest width run → the program is dead. Ratios are geometric means over seeds with bootstrap CIs; per-slice rows are ratios to K4c3 (> 1 = removing the slice hurts).
+
+| n | L | seeds | floor | K3c2 | K4c3 | K4c3/K3c2 [95% CI] | K4c2/K3c2 | coh2/K3c2 | no(3,1)/K4c3 | no(2,1,1)/K4c3 | no(1,1,1,1)/K4c3 | paired/K4c3 | +(3,1)/K4c3 | +(2,1,1)/K4c3 | s/run (K4c3) | errors |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 128 | 8 | 3 | 1.9e-08 | 1.601e-05 | 1.008e-06 | **0.06** [0.05, 0.08] | — | 0.55 | — | — | — | — | — | — | 2 | 0 |
+| 128 | 16 | 5 | 8.3e-09 | 2.597e-05 | 1.016e-05 | **0.34** [0.19, 0.53] | 0.84 | 0.94 | 4.47 | 15.12 | 1.89 | 11.98 | 12.10 | 2.64 | 6 | 0 |
+| 160 | 8 | 3 | 2.0e-08 | 9.446e-06 | 3.862e-07 | **0.04** [0.04, 0.04] | — | 0.32 | — | — | — | — | — | — | 4 | 0 |
+| 160 | 16 | 5 | 1.0e-08 | 1.940e-05 | 3.965e-06 | **0.22** [0.14, 0.32] | 0.64 | 0.66 | 4.45 | 8.84 | 1.87 | 8.81 | 7.04 | 2.01 | 14 | 0 |
+| 192 | 8 | 3 | 1.7e-08 | 5.318e-06 | 1.335e-07 | **0.03** [0.02, 0.03] | — | 0.28 | — | — | — | — | — | — | 10 | 0 |
+| 192 | 16 | 5 | 1.1e-08 | 1.696e-05 | 2.194e-06 | **0.13** [0.10, 0.17] | 0.42 | 0.41 | 4.53 | 11.80 | 1.80 | 11.18 | 9.68 | 2.84 | 31 | 0 |
+
+### Conditional-coherent proxies (round 2): each config vs K4c3 and vs K3c2 (geometric means over seeds)
+
+Pre-registered: the λ_a·C form is dead if the oracle (2,1,1) fit recovers < 30 % of the log-gap paired_only → K4c3.
+
+| n | L | config | / K4c3 [95% CI] | / K3c2 | recovery of paired→K4c3 gap | R² (2,1,1) | R² (3,1) | corr λ formula/oracle (2,1,1) |
+|---|---|---|---|---|---|---|---|---|
+| 128 | 8 | cc:cc211_formula | 2.36 [1.80, 2.87] | 0.15 | — | 0.39 | — | 0.48 |
+| 128 | 16 | cc:cc211_formula | 2.11 [1.60, 2.86] | 0.72 | 0.70 | 0.43 | — | 0.36 |
+| 128 | 16 | cc:cc211_oracle | 1.90 [1.42, 2.74] | 0.65 | 0.74 | 0.44 | — | 0.38 |
+| 128 | 16 | cc:cc31_formula | 1.24 [1.00, 1.43] | 0.42 | 0.91 | — | 0.53 | — |
+| 128 | 16 | cc:cc31_oracle | 1.29 [0.98, 1.55] | 0.44 | 0.90 | — | 0.53 | — |
+| 128 | 16 | cc:cc_both_formula | 1.93 [1.40, 2.67] | 0.66 | 0.73 | 0.44 | 0.59 | 0.36 |
+| 128 | 16 | cc:cc_both_formula_no1111 | 2.32 [1.46, 3.57] | 0.79 | 0.66 | 0.59 | 0.72 | 0.55 |
+| 128 | 16 | cc:cc_both_formula_singles | 1.95 [1.37, 2.78] | 0.66 | 0.73 | 0.36 | 0.51 | 0.60 |
+| 128 | 16 | cc:cc_both_oracle | 1.74 [1.36, 2.33] | 0.59 | 0.78 | 0.44 | 0.59 | 0.38 |
+| 128 | 16 | cc:paired_only | 11.98 [11.15, 12.89] | 4.08 | 0.00 | 0.18 | 0.26 | 0.32 |
+| 128 | 16 | cc:rs_singles | 4.41 [2.47, 7.88] | 1.50 | 0.40 | — | — | — |
+| 128 | 16 | coh2_pboth | 2.53 [1.54, 4.21] | 0.86 | 0.63 | — | — | — |
+| 128 | 16 | ex4c2_pboth | 2.15 [1.50, 3.10] | 0.73 | 0.69 | — | — | — |
+| 160 | 8 | cc:cc211_formula | 2.32 [1.79, 2.81] | 0.09 | — | 0.39 | — | 0.49 |
+| 160 | 16 | cc:cc211_formula | 2.06 [1.73, 2.47] | 0.45 | 0.67 | 0.42 | — | 0.36 |
+| 160 | 16 | cc:cc211_oracle | 1.90 [1.55, 2.32] | 0.41 | 0.70 | 0.44 | — | 0.38 |
+| 160 | 16 | cc:cc31_formula | 1.21 [1.12, 1.30] | 0.26 | 0.91 | — | 0.54 | — |
+| 160 | 16 | cc:cc31_oracle | 1.24 [1.15, 1.35] | 0.27 | 0.90 | — | 0.53 | — |
+| 160 | 16 | cc:cc_both_formula | 2.25 [1.97, 2.60] | 0.49 | 0.63 | 0.43 | 0.58 | 0.36 |
+| 160 | 16 | cc:cc_both_formula_no1111 | 2.38 [1.95, 2.84] | 0.51 | 0.60 | 0.58 | 0.72 | 0.57 |
+| 160 | 16 | cc:cc_both_formula_singles | 2.37 [2.05, 2.94] | 0.51 | 0.60 | 0.39 | 0.53 | 0.64 |
+| 160 | 16 | cc:cc_both_oracle | 1.83 [1.55, 2.16] | 0.39 | 0.72 | 0.44 | 0.60 | 0.38 |
+| 160 | 16 | cc:paired_only | 8.81 [7.60, 10.15] | 1.90 | 0.00 | 0.17 | 0.26 | 0.32 |
+| 160 | 16 | cc:rs_singles | 3.27 [2.88, 4.07] | 0.71 | 0.45 | — | — | — |
+| 160 | 16 | coh2_pboth | 2.90 [2.38, 3.51] | 0.63 | 0.51 | — | — | — |
+| 160 | 16 | ex4c2_pboth | 2.62 [2.05, 3.34] | 0.57 | 0.56 | — | — | — |
+| 192 | 8 | cc:cc211_formula | 2.76 [2.50, 2.98] | 0.07 | — | 0.38 | — | 0.51 |
+| 192 | 16 | cc:cc211_formula | 3.18 [2.53, 4.00] | 0.40 | 0.52 | 0.41 | — | 0.34 |
+| 192 | 16 | cc:cc211_oracle | 2.94 [2.48, 3.50] | 0.37 | 0.55 | 0.43 | — | 0.36 |
+| 192 | 16 | cc:cc31_formula | 1.90 [1.52, 2.29] | 0.24 | 0.73 | — | 0.55 | — |
+| 192 | 16 | cc:cc31_oracle | 1.33 [1.20, 1.48] | 0.17 | 0.88 | — | 0.55 | — |
+| 192 | 16 | cc:cc_both_formula | 3.50 [2.87, 4.16] | 0.44 | 0.48 | 0.41 | 0.56 | 0.34 |
+| 192 | 16 | cc:cc_both_formula_no1111 | 3.13 [2.68, 3.67] | 0.40 | 0.53 | 0.58 | 0.72 | 0.56 |
+| 192 | 16 | cc:cc_both_formula_singles | 3.71 [3.20, 4.29] | 0.47 | 0.46 | 0.38 | 0.53 | 0.64 |
+| 192 | 16 | cc:cc_both_oracle | 2.73 [2.30, 3.24] | 0.35 | 0.58 | 0.44 | 0.59 | 0.36 |
+| 192 | 16 | cc:paired_only | 11.18 [9.47, 13.01] | 1.42 | 0.00 | 0.17 | 0.26 | 0.32 |
+| 192 | 16 | cc:rs_singles | 5.05 [3.53, 7.02] | 0.64 | 0.33 | — | — | — |
+| 192 | 16 | coh2_pboth | 3.37 [2.84, 3.97] | 0.43 | 0.50 | — | — | — |
+| 192 | 16 | ex4c2_pboth | 3.18 [2.50, 3.97] | 0.40 | 0.52 | — | — | — |
+
+
+Verdict at the largest width run (n = 192): K4c3/K3c2 = 0.03 vs kill threshold 0.25 → **GO** (ratio below the kill threshold). The width trend of the ratio (≈ 4× per doubling at L = 8 in results/2026-10-17_w7_coherent_even.md) is what extrapolates to n = 1024; a ratio that does not fall with n at depth 16 falsifies the extrapolation.
+
+## Algorithm E — is the covariance low-rank + diagonal? (structure of the light chain's state at 1024×16)
+
+3 MLPs. 'off/diag' = ‖offdiag C‖²/‖diag C‖²; 'cov top-r' = fraction of the off-diagonal energy in the top-r eigenvectors; 'anchor k' = median variance of a non-anchor neuron explained by k pivoted-Cholesky anchors (Schur complement); the same spectral fractions for the κ3 (2,1) matrix D21 and the κ4 memory B. Pre-registered expectation: top-64 < 15 %, anchors-64 < 10 %.
+
+| layer | off/diag | cov top-16 | top-64 | top-256 | anchor 64 | anchor 256 | D21 top-64 | B top-64 |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 0.54 | 0.12 | 0.35 | 0.67 | 0.03 | 0.13 | 0.35 | 0.35 |
+| 4 | 1.51 | 0.38 | 0.72 | 0.93 | 0.12 | 0.32 | 0.72 | 0.74 |
+| 8 | 3.33 | 0.61 | 0.85 | 0.96 | 0.23 | 0.38 | 0.87 | 0.85 |
+| 12 | 6.22 | 0.77 | 0.91 | 0.98 | 0.36 | 0.51 | 0.94 | 0.89 |
+| 16 | 9.63 | 0.85 | 0.94 | 0.98 | 0.48 | 0.67 | 0.96 | 0.90 |
+
+MSE cost of the spiked closure (light chain with C projected to diag + rank r after every ReLU), vs the full light chain coh2:
+
+- coh2_spike0: MSE 2.311e-04, ratio to coh2 ≈ 6008.7×
+- coh2_spike64: MSE 7.203e-05, ratio to coh2 ≈ 1872.9×
+- coh2_spike256: MSE 2.574e-05, ratio to coh2 ≈ 669.2×
+
+## Residual corrector (Algorithm C) on V29, fitted on networks disjoint from the test networks
+
+Train: 20 networks (20480 neurons); test: 20 networks; features: 23; ridge λ = 0.01.
+
+| model | split | n | MSE before | MSE after | after/before [95% CI] | wins |
+|---|---|---|---|---|---|---|
+| ridge | cv | 20 | 2.290e-08 | 2.234e-08 | **0.975** [0.967, 0.983] | 17/20 |
+| mlp | cv | 20 | 2.290e-08 | 2.256e-08 | **0.984** [0.975, 0.995] | 16/20 |
+| ridge | test | 20 | 2.231e-08 | 2.200e-08 | **0.986** [0.973, 0.999] | 15/20 |
+| mlp | test | 20 | 2.231e-08 | 2.221e-08 | **0.996** [0.981, 1.011] | 12/20 |
+
+Largest standardized ridge coefficients: d_k2 -3.06e-05, e4 -2.14e-05, D3 +1.66e-05, mu_v29 -1.55e-05, mu_k2 -1.54e-05, phi -1.06e-05, e33 -8.97e-06, m -8.41e-06
+
+Kill rule: < 10% MSE reduction on held-out networks → drop the corrector. A ratio of 0.73 would match Hisernberg's public GRU corrector.
