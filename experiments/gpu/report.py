@@ -286,6 +286,12 @@ def main():
                     r4, r3c = ratio(cfg, "K4c3"), ratio(cfg, "K3c2")
                     rec_ = 1.0 - np.log(r4[0]) / np.log(gap[0]) if np.isfinite(r4[0]) and np.isfinite(gap[0]) and gap[0] > 1 else np.nan
                     sec = float(np.mean([r["v"][cfg].get("seconds") or 0 for r in rows if cfg in r["v"]]))
+                    vals = [v for v in col(cfg) if v is not None]
+                    errs = [r["v"][cfg].get("error") for r in rows if cfg in r["v"] and r["v"][cfg].get("error")]
+                    if errs and not vals:
+                        L.append(f"| {n} | {Lr} | {cfg} | error: {errs[0][:60]} | — | — | {sec:.0f} |"); continue
+                    if vals and float(np.median(vals)) > 1e-2:
+                        L.append(f"| {n} | {Lr} | {cfg} | diverged (median MSE {np.median(vals):.1e}) | — | — | {sec:.0f} |"); continue
                     out["k4_r3"][f"n{n}_L{Lr}_{cfg}"] = dict(n=n, L=Lr, cfg=cfg, ratio_K4c3=r4[:3], ratio_K3c2=r3c[:3], recovery=rec_, seconds=sec)
                     fr = lambda t: f"{t[0]:.2f} [{t[1]:.2f}, {t[2]:.2f}]" if np.isfinite(t[0]) else "—"
                     fx = lambda x: f"{x:.2f}" if np.isfinite(x) else "—"

@@ -42,8 +42,21 @@ def family(t):
     return "other"
 
 
+RS_OUT = {(3, 1), (2, 1, 1), (1, 1, 1, 1)}
+
+
 def is_newborn_k4(t):
-    return sum(t.p) == 4 and not any(sum(v) == 4 for v in t.diagram)
+    """A random-sign kappa4 birth: order-4 output on a random-sign slice with no kappa4 input block.
+    (Coherent births, outputs (4,) and (2,2), are kept at every layer: they are cheap in a factored
+    chain and dropping them destabilises the dense chain — round 3 of 2026-10-18.)"""
+    return sum(t.p) == 4 and t.p in RS_OUT and not any(sum(v) == 4 for v in t.diagram)
+
+
+def family_out(t):
+    """Family refined by output order: '<family>_4' writes kappa4 (a memory birth that a factored
+    chain must transport), '<family>_3' writes orders <= 3 (a per-layer contraction)."""
+    f = family(t)
+    return None if f is None else f"{f}_{'4' if sum(t.p) == 4 else '3'}"
 
 
 class LayerTermProp(dc.DenseProp):
@@ -72,10 +85,14 @@ class GenProp(LayerTermProp):
 
 
 class FamilyProp(LayerTermProp):
+    """families_on: names from ALL_FAMILIES (whole families) and/or ALL_FAMILIES_OUT (by output order)."""
+
     def __init__(self, families_on, device=None):
         super().__init__(device=device)
         fams = set(families_on)
-        self.active = self.all_terms = [t for t in self.all_terms if family(t) is None or family(t) in fams]
+        self.active = self.all_terms = [t for t in self.all_terms
+                                        if family(t) is None or family(t) in fams or family_out(t) in fams]
 
 
 ALL_FAMILIES = ("rs", "k3e", "p4e", "c3", "other")
+ALL_FAMILIES_OUT = ("rs_4", "rs_3", "k3e_4", "k3e_3", "p4e_4", "p4e_3", "c3_4", "c3_3")

@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import ROOT, parse_idx, write_json  # noqa: E402
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "experiments"))
-from arcmlp.estimators.ablations import ALL_FAMILIES, FamilyProp, GenProp  # noqa: E402
+from arcmlp.estimators.ablations import ALL_FAMILIES, ALL_FAMILIES_OUT, FamilyProp, GenProp  # noqa: E402
 from arcmlp.estimators.cc_proxy import CC_CONFIGS, CCProp  # noqa: E402
 from arcmlp.estimators.coherent_even import CoherentEvenProp  # noqa: E402
 from arcmlp.reference import dense_cumulants as dc  # noqa: E402
@@ -53,14 +53,19 @@ CONFIGS.update({f"cc:{k}": ("cc", k) for k in CC_CONFIGS if k != "K4c3"})
 ROUND2 = "K3c2,K3c3,K4c2,K4c3,paired_c3,coh2,ex4c2,coh2_pboth,ex4c2_pboth," + ",".join(f"cc:{k}" for k in CC_CONFIGS if k != "K4c3")
 # round 3: kappa4 generations (gen:A = births only at layers <= A) and cost-3 diagram families
 # (fam:-x = all but family x; fam:+x+y = cost<=2 terms plus the named families)
-ROUND3 = "K3c2,K4c2,K4c3,gen:1,gen:2,gen:3,gen:4,gen:6," + ",".join(f"fam:-{f}" for f in ALL_FAMILIES[:4]) + ",fam:+rs,fam:+rs+k3e,fam:+rs+c3,fam:+rs+k3e+c3,fam:+k3e+c3"
+ROUND3 = ("K3c2,K4c2,K4c3," + ",".join(f"fam:-{f}" for f in ALL_FAMILIES_OUT)
+          + ",fam:+rs+k3e+p4e,fam:+rs_4+rs_3+k3e_3+p4e_3,fam:+rs_4+rs_3+k3e_3+p4e_3+c3_3,fam:+rs_4+rs_3+k3e_4+k3e_3+p4e_3,fam:+rs_4+rs_3+k3e_3+p4e_4+p4e_3")
+# gen:A (kappa4 births truncated after layer A) is NOT in the list: dropping births while transmitting
+# the old kappa4 is unstable at every width tried (n = 48 .. 192, 2026-10-18) — the births regulate the
+# transmitted kappa4; generations cannot be ablated by term removal.
 
 
 def make_prop(cfg, device, Ws=None):
     if cfg.startswith("gen:"):
         return GenProp(int(cfg[4:]), device=device)
     if cfg.startswith("fam:-"):
-        return FamilyProp([f for f in ALL_FAMILIES if f != cfg[5:]], device=device)
+        drop = cfg[5:]
+        return FamilyProp([f for f in (ALL_FAMILIES_OUT if "_" in drop else ALL_FAMILIES) if f != drop], device=device)
     if cfg.startswith("fam:+"):
         return FamilyProp([f for f in cfg[5:].split("+") if f], device=device)
     feats = CONFIGS[cfg]

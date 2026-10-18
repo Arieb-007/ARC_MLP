@@ -51,7 +51,7 @@ case "$PROFILE" in
          STRUCT_IDX=${STRUCT_IDX:-0-2}
          K4_N=${K4_N:-"128 160 192"}; K4_SEEDS=${K4_SEEDS:-0-4}; K4_NMC=${K4_NMC:-1e7}; K4_CONFIGS=${K4_CONFIGS:-round2}; MC_IDX=${MC_IDX:-0}; MC_N=${MC_N:-1e6}
          TRAIN_IDX=${TRAIN_IDX:-20-39}; TEST_IDX=${TEST_IDX:-0-19}; SWEEP_VARIANTS=${SWEEP_VARIANTS:-""}; STAGES=${STAGES_OVERRIDE:-setup,smoke,data,cpu,gpu,k4L8,structure,report};;
-  round3) K4_N=${K4_N:-"256"}; K4_SEEDS=${K4_SEEDS:-0-4}; K4_NMC=${K4_NMC:-1e7}; K4_CONFIGS=${K4_CONFIGS:-K3c2,K4c2,K4c3}
+  round3) K4_N=${K4_N:-"256"}; K4_SEEDS=${K4_SEEDS:-0-4}; K4_NMC=${K4_NMC:-1e7}; K4_CONFIGS=${K4_CONFIGS:-K3c2,K4c2,K4c3}; K4_EXTRA="--chunk-rows 16"
          R3_N=${R3_N:-"192 256"}; R3_SEEDS=${R3_SEEDS:-0-2}; R3_CONFIGS=${R3_CONFIGS:-round3}
          FETCH_IDX=${FETCH_IDX:-0-0}; BASE_IDX=${BASE_IDX:-0-0}; SWEEP_IDX=0-0; CONFIRM_IDX=0-0; DENSE_IDX=0-0; DENSE_VARIANTS=K2; MC_IDX=0; MC_N=1e6
          TRAIN_IDX=0-0; TEST_IDX=0-0; SWEEP_VARIANTS=""; STAGES=${STAGES_OVERRIDE:-setup,smoke,k4,k4r3,report};;
@@ -178,7 +178,7 @@ if want gpu; then
       stage dense 14400 "$PY" experiments/gpu/dense_refs.py --mlps "$MLPS" --idx "$DENSE_IDX" --variants "$DENSE_VARIANTS" --device "$DEVICE" --out "$GD/dense"
     fi
     # shellcheck disable=SC2086
-    stage k4 14400 "$PY" experiments/gpu/k4_gonogo.py --n $K4_N --L 16 --seeds "$K4_SEEDS" --N "$K4_NMC" --device "$DEVICE" --configs "$K4_CONFIGS" --out "$GD/k4" --mc-cache "$GD/mc"
+    stage k4 14400 "$PY" experiments/gpu/k4_gonogo.py --n $K4_N --L 16 --seeds "$K4_SEEDS" --N "$K4_NMC" --device "$DEVICE" --configs "$K4_CONFIGS" --out "$GD/k4" --mc-cache "$GD/mc" ${K4_EXTRA:-}
   else
     status gpu skip 0 "no CUDA device (set ALLOW_CPU_GPU_STAGES=1 to run the GPU stages on the CPU at small sizes)"
     log "GPU stages skipped: no CUDA device"
@@ -188,7 +188,7 @@ fi
 if want k4r3 && { [ "$DEVICE" = cuda ] || [ "$ALLOW_CPU_GPU_STAGES" = 1 ]; }; then
   # round 3: kappa4 generations and cost-3 diagram families at depth 16
   # shellcheck disable=SC2086
-  stage k4r3 21600 "$PY" experiments/gpu/k4_gonogo.py --n ${R3_N:-192} --L 16 --seeds "${R3_SEEDS:-0-2}" --N "$K4_NMC" --device "$DEVICE" --configs "${R3_CONFIGS:-round3}" --out "$GD/k4" --mc-cache "$GD/mc"
+  stage k4r3 21600 "$PY" experiments/gpu/k4_gonogo.py --n ${R3_N:-192} --L 16 --seeds "${R3_SEEDS:-0-2}" --N "$K4_NMC" --device "$DEVICE" --configs "${R3_CONFIGS:-round3}" --out "$GD/k4" --mc-cache "$GD/mc" ${K4_EXTRA:-}
 fi
 if want k4L8 && { [ "$DEVICE" = cuda ] || [ "$ALLOW_CPU_GPU_STAGES" = 1 ]; }; then
   # depth-8 ladder for the width exponent of the exact chain (3 seeds)

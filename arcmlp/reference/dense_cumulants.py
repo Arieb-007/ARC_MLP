@@ -306,6 +306,7 @@ def _einsum_acc(acc, coef, expr, ops, out_letter):
     ins, outs = expr.split("->")
     subs = ins.split(",")
     step = max(1, min(n, K4_CHUNK_ROWS))
+    big = [i for i, sub in enumerate(subs) if len(sub) == 4]
     for i0 in range(0, n, step):
         sl = slice(i0, i0 + step)
         ops_c = []
@@ -315,10 +316,22 @@ def _einsum_acc(acc, coef, expr, ops, out_letter):
                 ops_c.append(op[(slice(None),) * ax + (sl,)])
             else:
                 ops_c.append(op)
-        tmp = xp.einsum(expr, *ops_c, optimize=True)
-        tmp *= coef
+        if len(big) == 1 and all(len(sub) == 1 for j, sub in enumerate(subs) if j != big[0]) and subs[big[0]] == outs:
+            # T[abcd] * u_a v_b w_c x_d: plain broadcasting on the chunk (no optimizer intermediates)
+            tmp = ops_c[big[0]] * coef
+            for j, sub in enumerate(subs):
+                if j == big[0]:
+                    continue
+                ax = outs.index(sub)
+                shape = [1] * 4
+                shape[ax] = -1
+                tmp *= ops_c[j].reshape(shape)
+        else:
+            tmp = xp.einsum(expr, *ops_c, optimize=True)
+            tmp *= coef
         acc[sl] += tmp
         del tmp
+    free_pool()
 
 
 def _sym4_lean(T):
