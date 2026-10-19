@@ -116,3 +116,75 @@ Rows that did run at n = 256 (3 seeds, ratio to K3c2 = 7.165e-6): K4c2 0.35 (0.4
 - K4c3/K3c2 at n = 256 > 0.09 → still unmeasured (memory bug fixed, rerun pending).
 - Generations: void (unmeasurable by ablation, pass 1).
 - Families: c3_4 and p4e_4 droppable (≤ 1.03×) → passed; the expensive κ4 births from κ3 + edge are required.
+
+---
+
+# Pass 3 (commit 45eb12f, received 2026-10-19) — n = 256 measured: GO
+
+> Raw report: `results/2026-10-19_gpu_round3_pass3_as_received.md`. n = 256, L = 16, seeds 0–2, device MC
+> truth N = 1e7 (floor 1.1e-8, 2 % of K4c3). The memory fix held: every requested n = 256 row ran (K4c3
+> 95 s/run, peak within the 2.5 n⁴ budget). Rows still showing OutOfMemoryError are stale pass-2 entries
+> of configurations no longer in the round-3 list (whole families, gen:A); the report now labels such
+> rows "stale" and `k4_gonogo` records the requested list and the commit per row.
+
+## The kill-rule number
+
+| n (L = 16) | 128 | 160 | 192 | **256** |
+|---|---|---|---|---|
+| K4c3 / K3c2 | 0.34 | 0.22 | 0.13 | **0.06 [0.05, 0.08]** |
+| K4c3 (abs.) | 1.02e-5 | 3.97e-6 | 2.19e-6 | 4.84e-7 |
+| K3c2 (abs.) | 2.60e-5 | 1.94e-5 | 1.70e-5 | 7.17e-6 |
+| seeds | 5 | 5 | 5 | 3 |
+
+[measured] 0.06 < 0.09 (pre-registered kill line, `docs/notes/w7_prereg_n256_L8.md`): **the factored-κ4
+program is GO**; the pre-registered point prediction 0.10 [0.05, 0.20] is confirmed (inside the interval).
+Exponents over 128 → 256 at depth 16: ratio n^-2.5, K4c3 n^-4.4, K3c2 n^-1.9 (the K3 exponent agrees
+with the n^-1.99 measured 256 → 1024 on the dataset). Caveat: n = 256 uses 3 seeds and the K3c2 drop
+192 → 256 (2.4×) is steeper than 160 → 192 (1.1×), so the ratio's exponent is uncertain by ~±0.5.
+
+Extrapolation to n = 1024 [hypothesis; the n ≤ 256 fits of 2026-10-17 over-predicted the 1024 gains by
+1.5–2.5×]: with K3c2(1024) = 4.29e-7 measured, a dense cap-3 K=4 chain would reach
+
+| assumed ratio law from 256 | ratio at 1024 | K4c3 at 1024 | vs V29 raw 2.13e-8 |
+|---|---|---|---|
+| n^-1 (asymptotic order counting: K=4 truncation O(n^-3) vs K=3 O(n^-2)) | 0.015 | 6.4e-9 | 3.3× better |
+| n^-2.5 (the measured 128 → 256 slope, pre-asymptotic) | 0.0019 | 8.1e-10 | 26× better |
+
+Either bound beats V29's raw error, and at a C/B of 0.1–0.25 either would beat the leader's 1.42e-9
+score (raw 1.4e-8 suffices at the 0.1 cost floor). The dense chain itself is unusable at 1024 (n⁴
+float32 = 4 TB); the gain has to be realised by the factored program, whose losses are not yet measured.
+
+## Families at n = 256 (3 seeds; ratio to K4c3 when removed; n = 192 in brackets)
+
+| removed | / K4c3 [95 % CI] | n = 192 | trend |
+|---|---|---|---|
+| rs_3 (κ4 read-out) | 4504 [1477, 11493] | 4728 | unchanged: unstable without |
+| k3e_3 | 83.7 [58, 158] | 64.8 | growing |
+| k3e_4 (κ4 births from κ3 + edge) | 46.6 [35, 80] | 26.0 | **growing** |
+| rs_4 (random-sign transmission) | 11.3 [9.7, 13.2] | 13.0 | flat |
+| p4e_4 | 1.74 [1.01, 3.13] | 0.96 | no longer clearly droppable |
+| c3_4 | 1.73 [0.87, 3.18] | 1.03 | no longer clearly droppable |
+| p4e_3 | 1.64 [1.58, 1.76] | 1.50 | flat |
+| c3_3 | 1.63 [1.54, 1.68] | 1.74 | flat |
+
+Constructive: rs + k3e + p4e (no c3) 1.39 [0.85, 2.31] (192: 0.99); rs + k3e_4 + k3e_3 + p4e_3 **4.07**
+[2.5, 7.6], recovery 0.49 (192: 2.11, 0.64); without the k3e_4 births 74.8 (192: 42).
+
+Reading [measured, 3 seeds, wide CIs]: the ranking is stable (read-outs ≫ κ3-block births ≫ transmission
+≫ the rest) and the weight of the κ3-block + edge births *increases* with width, as does the importance
+of everything beyond the minimal set: the minimal set's recovery fell from 0.64 to 0.49, and the two
+births previously called droppable (c3_4, p4e_4) now cost ~1.7× each with CIs touching 1. Conclusion for
+the factored design: carry **all** cost-3 families; the cheap approximation "rs + k3e only" loses a
+factor that grows with n (2.1× → 4.1× from 192 to 256) and would eat most of the extrapolated gain at
+1024. The expensive objects are therefore the random-sign κ4(h) memory itself (transmission on four
+modes) and its births from κ3(h) ⊗ C — their compressibility (tensor-train / matricisation ranks as a
+function of n) is the one quantity the program now depends on and has not been measured.
+
+## Kill rules after pass 3
+
+- K4c3/K3c2 at n = 256 > 0.09 → **0.06, passed (GO)**.
+- Generations: void (unmeasurable by ablation).
+- Families: at n = 192 two were droppable; at n = 256 none clearly is → the rule's literal reading
+  ("no family can be dropped") is now borderline, but it measured substitutability, and the chain with
+  rs + k3e + p4e (no c3) is still within 1.4× [0.85, 2.31]; recorded as "carry all, drop none" rather
+  than as a kill.

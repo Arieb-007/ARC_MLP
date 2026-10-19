@@ -31,6 +31,11 @@ from arcmlp.reference.device import device_info, free_pool, peak_mem_gb, resolve
 from arcmlp.reference.mc import cached_truth, debiased_mse  # noqa: E402
 from w5_selection import FEATURES, K3F, K4F, gates  # noqa: E402
 
+import subprocess
+try:
+    COMMIT = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, cwd=ROOT).stdout.strip()
+except Exception:
+    COMMIT = ""
 ALL = set(FEATURES["dense"])
 RS = {"K4(3,1)", "K4(2,1,1)", "K4(1,1,1,1)"}
 CONFIGS = {
@@ -116,6 +121,7 @@ def main():
             tr = cached_truth(Ws, n, a.L, sd, int(a.N), mc_seed=70_000 + 100 * a.L + sd, cache_dir=a.mc_cache,
                               device=dev, chunk=a.chunk)
             res["floor"] = float(tr["floor"]); res["mc_seconds"] = float(tr.get("seconds", time.time() - t0))
+            res["requested"] = sorted(set(res.get("requested", [])) | set(cfgs))   # rows of configs never requested since an error are stale
             for cfg in cfgs:
                 if cfg in res["v"] and res["v"][cfg].get("error") is None:
                     continue
@@ -137,6 +143,7 @@ def main():
                 except Exception as e:
                     res["v"][cfg] = dict(mse=None, error=f"{type(e).__name__}: {str(e)[:200]}", seconds=time.time() - t0,
                                          traceback=traceback.format_exc()[-800:])
+                res["v"][cfg]["commit"] = COMMIT
                 free_pool()
                 write_json(path, res)
                 r = res["v"][cfg]

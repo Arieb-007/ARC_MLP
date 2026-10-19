@@ -87,3 +87,17 @@ nominating [AIcrowd 336554](https://www.aicrowd.com/challenges/arc-white-box-est
 - Factored-κ4 design fixed by the family data: carry rs (transmission + read-out), k3e (births + read-out),
   p4e_3, c3_3; drop c3_4, p4e_4. Width scaling of each family: unmeasured [open].
 - Next acceptance criterion: K4c3/K3c2 at n = 256 (kill > 0.09) from the rerun; then the write-up draft.
+
+## 2026-10-19: round 3 pass 3 — the n = 256 point (results/2026-10-18_gpu_round3_analysis.md, pass 3)
+
+- [measured, 3 seeds, L = 16] K4c3/K3c2 = 0.06 [0.05, 0.08] at n = 256 → below the pre-registered kill line
+  0.09; prediction 0.10 [0.05, 0.20] confirmed. Ladder 0.34/0.22/0.13/0.06 (n^-2.5). K3c2 n^-1.9.
+- [hypothesis] dense cap-3 K=4 at 1024 would be 8e-10 … 6.4e-9 raw (n^-2.5 … n^-1 law from 256), 3–26×
+  below V29's raw; the dense chain is 4 TB at 1024, so this is the ceiling of the factored program.
+- [measured] Family weights grow with width: the κ3-block + edge κ4 births 26× → 47×; the minimal set
+  (rs + k3e + p4e_3) recovers 0.49 of the gap at 256 (0.64 at 192); c3_4/p4e_4 ~1.7× each (CIs touch 1).
+  Design decision: the factored chain must carry every cost-3 family; what is unmeasured is the rank
+  structure of the random-sign κ4 memory and of its births (the quantity the cost at 1024 depends on).
+- Phase 2 closes 2026-10-21 23:59 UTC: nothing from this program can be submitted; it is write-up material
+  and the post-deadline plan. Next acceptance criterion: (a) write-up draft with the 1024 tables and the
+  round-3 ladder; (b) if GPU time remains, round 4 = rank oracle of the dense κ4 memory at n = 192/256.
