@@ -26,6 +26,7 @@ sys.path.insert(0, os.path.join(ROOT, "experiments"))
 from arcmlp.estimators.ablations import ALL_FAMILIES, ALL_FAMILIES_OUT, FamilyProp, GenProp  # noqa: E402
 from arcmlp.estimators.cc_proxy import CC_CONFIGS, CCProp  # noqa: E402
 from arcmlp.estimators.coherent_even import CoherentEvenProp  # noqa: E402
+from arcmlp.estimators.linear_response import ROUND4, LinearResponseProp, parse_lr  # noqa: E402
 from arcmlp.reference import dense_cumulants as dc  # noqa: E402
 from arcmlp.reference.device import device_info, free_pool, peak_mem_gb, resolve_device  # noqa: E402
 from arcmlp.reference.mc import cached_truth, debiased_mse  # noqa: E402
@@ -65,7 +66,14 @@ ROUND3 = ("K3c2,K4c2,K4c3," + ",".join(f"fam:-{f}" for f in ALL_FAMILIES_OUT)
 # transmitted kappa4; generations cannot be ablated by term removal.
 
 
+# round 4: linear response of the kappa4 memory (docs/notes/r4_prereg_linear_response.md); the rank
+# diagnostics need one extra n^4 copy and the births spectrum three, so they run at n <= 192 only
+ROUND4R = ROUND4 + ",lr:oneway:rank"
+
+
 def make_prop(cfg, device, Ws=None):
+    if cfg.startswith("lr:"):
+        return LinearResponseProp(**parse_lr(cfg), device=device)
     if cfg.startswith("gen:"):
         return GenProp(int(cfg[4:]), device=device)
     if cfg.startswith("fam:-"):
@@ -109,7 +117,8 @@ def main():
     dev = resolve_device(a.device)
     os.makedirs(a.out, exist_ok=True)
     print("device:", json.dumps(device_info(dev), default=str), flush=True)
-    cfgs = [c.strip() for c in {"round2": ROUND2, "round3": ROUND3}.get(a.configs, a.configs).split(",") if c.strip()]
+    presets = {"round2": ROUND2, "round3": ROUND3, "round4": ROUND4, "round4+rank": ROUND4R}
+    cfgs = [c.strip() for part in a.configs.split(",") for c in presets.get(part.strip(), part).split(",") if c.strip()]
     if a.chunk_rows:
         dc.K4_CHUNK_ROWS = a.chunk_rows
     for n in a.n:
@@ -132,6 +141,10 @@ def main():
                     dm = debiased_mse(mus[-1], tr)
                     res["v"][cfg] = dict(mse=dm["debiased"], raw=dm["raw"], se=dm["se"], seconds=time.time() - t0,
                                          peak_mem_gb=peak_mem_gb(), error=None)
+                    if cfg.startswith("lr:") or cfg in ("K3c3", "K4c3"):
+                        res["v"][cfg]["mu"] = [float(x) for x in mus[-1]]   # final-layer means (linearity, paths)
+                    if getattr(pr, "extra", None):
+                        res["v"][cfg].update(pr.extra)
                     diag = [d for d in getattr(pr, "diag", []) if any(k.startswith("r2_") for k in d)]
                     if diag:
                         for key in ("r2_211", "r2_31", "corr211", "corr31"):

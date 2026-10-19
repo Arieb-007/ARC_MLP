@@ -281,21 +281,28 @@ def linear_step(K, W, Kt, consume=False):
         Z[3] = xp.ascontiguousarray(xp.transpose(T, (2, 1, 0)))
         del T
     if Kt >= 4:
-        n = W.shape[0]
         T = K[4]
         if consume:
             del K[4]                       # the caller's state tensor is released as soon as possible
-        for ax in range(4):
-            out = xp.empty((n,) * 4, dtype=T.dtype)
-            step = max(1, min(n, K4_CHUNK_ROWS))
-            for i0 in range(0, n, step):   # out[i, ...] = sum_j W[i, j] T[..., j] (mode product on the last axis)
-                out[i0:i0 + step] = xp.tensordot(W[i0:i0 + step], T, axes=([1], [3]))
-            del T
-            T = out
-            del out
-        Z[4] = T
+        Z[4] = mode4(T, W)
         del T
     return Z
+
+
+def mode4(T, W):
+    """W^{(x)4} . T for a dense order-4 tensor, in row chunks (two n^4 buffers at most). The caller should
+    drop its own reference to T to let the first buffer go."""
+    xp = get_array_module(W)
+    n = W.shape[0]
+    for ax in range(4):
+        out = xp.empty((n,) * 4, dtype=T.dtype)
+        step = max(1, min(n, K4_CHUNK_ROWS))
+        for i0 in range(0, n, step):   # out[i, ...] = sum_j W[i, j] T[..., j] (mode product on the last axis)
+            out[i0:i0 + step] = xp.tensordot(W[i0:i0 + step], T, axes=([1], [3]))
+        del T
+        T = out
+        del out
+    return T
 
 
 def _einsum_acc(acc, coef, expr, ops, out_letter):
@@ -379,6 +386,28 @@ def _symmetrize(T, p):
     return T
 
 
+def assemble4(S, n):
+    """Dense order-4 cumulant tensor from its slices S[(1,1,1,1)] (filled in place: it becomes the
+    result), S[(2,1,1)], S[(2,2)], S[(3,1)], S[(4,)]."""
+    xp = get_array_module(S[(1, 1, 1, 1)])
+    idx = xp.arange(n)
+    T = S[(1, 1, 1, 1)]          # in place (largest array)
+    i, j, k = xp.ix_(idx, idx, idx)
+    A = S[(2, 1, 1)]
+    for pos in [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]:
+        ind = [None] * 4
+        rest = [x for x in range(4) if x not in pos]
+        ind[pos[0]] = i; ind[pos[1]] = i; ind[rest[0]] = j; ind[rest[1]] = k
+        T[tuple(ind)] = A
+    I2, J2 = xp.ix_(idx, idx)
+    B22 = S[(2, 2)]
+    T[I2, I2, J2, J2] = B22; T[I2, J2, I2, J2] = B22; T[I2, J2, J2, I2] = B22
+    B31 = S[(3, 1)]
+    T[I2, I2, I2, J2] = B31; T[I2, I2, J2, I2] = B31; T[I2, J2, I2, I2] = B31; T[J2, I2, I2, I2] = B31
+    T[idx, idx, idx, idx] = S[(4,)]
+    return T
+
+
 class DenseProp:
     """Dense order-Kt cumulant propagation with a switchable term registry and slice hooks."""
 
@@ -402,16 +431,19 @@ class DenseProp:
         xp.fill_diagonal(Ct, 0.0)
         sl[(1, 1)] = Ct
         for k in range(3, Kt + 1):
+            if k not in Z:                     # e.g. births-only order-4 terms need no kappa4 input
+                continue
             for pat in int_partitions(k):
                 sl[pat] = _diag_slice(Z[k], pat)
         if self.slice_hook is not None:
             self.slice_hook(layer, Z, sl)
         return sl
 
-    def power_cumulants(self, Z, layer=0, terms=None, release=False):
+    def power_cumulants(self, Z, layer=0, terms=None, release=False, orders=None):
         """pK slices (dict p -> array over len(p) distinct-neuron axes) from the active terms
         (or the given list of terms). release=True frees Z[4] once the order-4 terms are done
-        (relu_step inside run(); never when a caller reuses Z)."""
+        (relu_step inside run(); never when a caller reuses Z). orders: output orders to compute
+        (default 1..Kt); slices of other orders are not allocated."""
         n = Z[1].shape[0]
         Kt = self.Kt
         dt = Z[1].dtype
@@ -429,7 +461,7 @@ class DenseProp:
         by_p = defaultdict(list)
         for t in (self.active if terms is None else terms):
             by_p[t.p].append(t)
-        for d in range(1, Kt + 1):
+        for d in (range(1, Kt + 1) if orders is None else orders):
             for p in int_partitions(d):
                 r = len(p)
                 acc = xp.zeros((n,) * r, dtype=dt)
@@ -517,22 +549,7 @@ class DenseProp:
             T[idx, idx, idx] = S[(3,)]
             K[3] = T
         if self.Kt >= 4:
-            T = S[(1, 1, 1, 1)]          # in place (largest array)
-            I3 = xp.ix_(idx, idx, idx)
-            i, j, k = I3
-            A = S[(2, 1, 1)]
-            for pos in [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]:
-                ind = [None] * 4
-                rest = [x for x in range(4) if x not in pos]
-                ind[pos[0]] = i; ind[pos[1]] = i; ind[rest[0]] = j; ind[rest[1]] = k
-                T[tuple(ind)] = A
-            I2, J2 = xp.ix_(idx, idx)
-            B22 = S[(2, 2)]
-            T[I2, I2, J2, J2] = B22; T[I2, J2, I2, J2] = B22; T[I2, J2, J2, I2] = B22
-            B31 = S[(3, 1)]
-            T[I2, I2, I2, J2] = B31; T[I2, I2, J2, I2] = B31; T[I2, J2, I2, I2] = B31; T[J2, I2, I2, I2] = B31
-            T[idx, idx, idx, idx] = S[(4,)]
-            K[4] = T
+            K[4] = assemble4(S, n)
         return K
 
     def run(self, Ws, return_all=False):

@@ -5,7 +5,7 @@
 #   git clone https://github.com/Arieb-007/ARC_MLP && cd ARC_MLP && bash scripts/gpu_run.sh
 #
 # Options (flags or environment variables):
-#   --profile smoke|quick|fast|full   (default fast)    --stages all|setup,smoke,data,cpu,gpu,corrector,report
+#   --profile smoke|quick|fast|full|round2|round3|round4   (default fast)    --stages all|setup,smoke,data,cpu,gpu,corrector,report
 #   --dataset hf://aicrowd/arc-whestbench-public-2026@v2-phase2   --split mini   --device auto|cuda|cpu   --push
 # Everything is resumable: finished (variant, MLP) results are skipped on a rerun. Logs: data/gpu/logs/.
 # Output: results/<date>_gpu_run.md (+ .json); with --push also committed to branch gpu-results-<date>.
@@ -55,6 +55,10 @@ case "$PROFILE" in
          R3_N=${R3_N:-"192 256"}; R3_SEEDS=${R3_SEEDS:-0-2}; R3_CONFIGS=${R3_CONFIGS:-round3}
          FETCH_IDX=${FETCH_IDX:-0-0}; BASE_IDX=${BASE_IDX:-0-0}; SWEEP_IDX=0-0; CONFIRM_IDX=0-0; DENSE_IDX=0-0; DENSE_VARIANTS=K2; MC_IDX=0; MC_N=1e6
          TRAIN_IDX=0-0; TEST_IDX=0-0; SWEEP_VARIANTS=""; STAGES=${STAGES_OVERRIDE:-setup,smoke,k4,k4r3,report};;
+  round4) K4_N=${K4_N:-"256"}; K4_SEEDS=${K4_SEEDS:-0-2}; K4_NMC=${K4_NMC:-1e7}; K4_CONFIGS=${K4_CONFIGS:-K3c3,K4c3}; K4_EXTRA="--chunk-rows 16"
+         R4_N=${R4_N:-"128 192"}; R4_N_BIG=${R4_N_BIG:-"256"}; R4_SEEDS=${R4_SEEDS:-0-2}
+         FETCH_IDX=${FETCH_IDX:-0-0}; BASE_IDX=${BASE_IDX:-0-0}; SWEEP_IDX=0-0; CONFIRM_IDX=0-0; DENSE_IDX=0-0; DENSE_VARIANTS=K2; MC_IDX=0; MC_N=1e6
+         TRAIN_IDX=0-0; TEST_IDX=0-0; SWEEP_VARIANTS=""; STAGES=${STAGES_OVERRIDE:-setup,smoke,k4r4,report};;
   *) echo "unknown profile $PROFILE" >&2; exit 2;;
 esac
 [ "$K4_CONFIGS" = all ] && K4_CONFIGS="K3c2,K3c3,K4c2,K4c3,K4c3-no31,K4c3-no211,K4c3-no1111,paired_c3,paired_c3+31,paired_c3+211,coh2,ex4c2"
@@ -189,6 +193,13 @@ if want k4r3 && { [ "$DEVICE" = cuda ] || [ "$ALLOW_CPU_GPU_STAGES" = 1 ]; }; th
   # round 3: kappa4 generations and cost-3 diagram families at depth 16
   # shellcheck disable=SC2086
   stage k4r3 21600 "$PY" experiments/gpu/k4_gonogo.py --n ${R3_N:-192} --L 16 --seeds "${R3_SEEDS:-0-2}" --N "$K4_NMC" --device "$DEVICE" --configs "${R3_CONFIGS:-round3}" --out "$GD/k4" --mc-cache "$GD/mc" ${K4_EXTRA:-}
+fi
+if want k4r4 && { [ "$DEVICE" = cuda ] || [ "$ALLOW_CPU_GPU_STAGES" = 1 ]; }; then
+  # round 4: linear response of the kappa4 memory (docs/notes/r4_prereg_linear_response.md); spectra at n <= 192
+  # shellcheck disable=SC2086
+  stage k4r4 14400 "$PY" experiments/gpu/k4_gonogo.py --n ${R4_N:-"128 192"} --L 16 --seeds "${R4_SEEDS:-0-2}" --N "$K4_NMC" --device "$DEVICE" --configs "K3c3,K4c3,round4+rank" --out "$GD/k4" --mc-cache "$GD/mc" ${K4_EXTRA:-}
+  # shellcheck disable=SC2086
+  stage k4r4big 14400 "$PY" experiments/gpu/k4_gonogo.py --n ${R4_N_BIG:-256} --L 16 --seeds "${R4_SEEDS:-0-2}" --N "$K4_NMC" --device "$DEVICE" --configs "K3c3,K4c3,round4" --out "$GD/k4" --mc-cache "$GD/mc" ${K4_EXTRA:-}
 fi
 if want k4L8 && { [ "$DEVICE" = cuda ] || [ "$ALLOW_CPU_GPU_STAGES" = 1 ]; }; then
   # depth-8 ladder for the width exponent of the exact chain (3 seeds)

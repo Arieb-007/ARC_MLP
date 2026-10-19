@@ -305,6 +305,12 @@ def main():
                     L.append(f"| {n} | {Lr} | {cfg} | {fr(r4)} | {fx(r3c[0])} | {fx(rec_)} | {sec:.0f} |")
             L += ["", "Pre-registered kill rules for the factored-κ4 program: K4c3/K3c2 at n = 256 (L = 16) > 0.09; or gen:A needs A ≥ 6 for ≥ 70 % recovery; "
                   "or no family can be dropped (every fam:−x loses ≥ 50 % of the gap).", ""]
+        # round 4: linear response of the kappa4 memory
+        from report_r4 import section as r4_section
+        r4_lines, r4_out = r4_section(k4)
+        if r4_lines:
+            L += r4_lines
+            out["k4_r4"] = r4_out
         l16 = [r for r in out["k4"].values() if isinstance(r, dict) and r.get("L") == 16] or [r for r in out["k4"].values() if isinstance(r, dict)]
         big = max(l16, key=lambda r: r["n"])
         r0 = big["ratio_K4c3_K3c2"]

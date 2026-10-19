@@ -16,6 +16,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from arcmlp.estimators.coherent_even import CoherentEvenProp  # noqa: E402
+from arcmlp.estimators.linear_response import LinearResponseProp, parse_lr  # noqa: E402
 from arcmlp.reference import dense_cumulants as dc  # noqa: E402
 from arcmlp.reference.device import device_info, resolve_device  # noqa: E402
 from arcmlp.reference.mc import mc_truth_device  # noqa: E402
@@ -38,7 +39,9 @@ def main():
                        ("K3c2", lambda d: dc.DenseProp(Kt=3, cap=2, device=d)),
                        ("K4c3", lambda d: dc.DenseProp(Kt=4, cap=3, device=d)),
                        ("coh2", lambda d: CoherentEvenProp("coherent", cap=2, device=d)),
-                       ("ex4c3_k6", lambda d: CoherentEvenProp("ex4", cap=3, k6=True, device=d))]:
+                       ("ex4c3_k6", lambda d: CoherentEvenProp("ex4", cap=3, k6=True, device=d)),
+                       ("lr_oneway_b1", lambda d: LinearResponseProp(**parse_lr("lr:oneway:b=1"), device=d)),
+                       ("lr_rank", lambda d: LinearResponseProp(**{**parse_lr("lr:oneway:rank"), "rank_layers": (1,), "rank_r": 32}, device=d))]:
         ref = make("cpu").run(Ws)[0]
         got = make(dev).run(Ws)[0]
         err = float(np.max(np.abs(ref - got)) / (np.max(np.abs(ref)) + 1e-30))
@@ -54,7 +57,8 @@ def main():
     out["checks"]["mc_mu_rms_diff_over_se"] = float(np.sqrt(np.mean((mc["mu"] - mc_cpu["mu"]) ** 2))
                                                    / np.sqrt(np.mean(mc_cpu["varL"]) / 200_000))
     out["seconds"] = time.time() - t0
-    tol = {"K2": 1e-9, "K3c2": 1e-9, "K4c3": 1e-9, "coh2": 1e-9, "ex4c3_k6": 1e-9, "K3c2_f32_n72": 1e-4}
+    tol = {"K2": 1e-9, "K3c2": 1e-9, "K4c3": 1e-9, "coh2": 1e-9, "ex4c3_k6": 1e-9, "lr_oneway_b1": 1e-9, "lr_rank": 1e-9,
+           "K3c2_f32_n72": 1e-4}
     if dev == "cuda":
         tol = {k: (1e-5 if v < 1e-6 else v) for k, v in tol.items()}   # different summation order on the GPU
     ok = all(out["checks"][k] <= tol[k] for k in tol) and out["checks"]["mc_mu_rms_diff_over_se"] < 4.0

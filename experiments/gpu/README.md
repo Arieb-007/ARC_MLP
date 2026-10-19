@@ -76,3 +76,18 @@ bash scripts/gpu_run.sh --profile round3
 Pass 2 (2026-10-19): families are also split by output order (`fam:-<family>_4` = the terms writing κ4,
 `_3` = those writing orders ≤ 3). The n = 256 rows need ≈ 2.5 n⁴ float32 = 40 GB of pool headroom; the
 peak is printed per row (`peak_mem_gb`) and an error row shows the failing frame of the traceback.
+
+## Round 4 (`--profile round4`, ~2–3 h): linear response of the κ4 memory
+
+Question: can the κ4 effect on the final means be computed as a linear response around a K = 3 trajectory
+(births and transport on that trajectory, read-outs added afterwards)? That is the premise of an adjoint
+read-out add-on to V29; this round also measures through which paths (read-out depth) and over how many
+generations it acts, whether round 3's generation divergence was real, and the rank of the κ4 bulk.
+Chain: `arcmlp/estimators/linear_response.py` (background = K3c3, κ4 probe, perturbed chain; the two-way
+variant equals K4c3 exactly, `tests/test_linear_response.py`). Rules, written before the run:
+`docs/notes/r4_prereg_linear_response.md`. Stages `k4r4` (n = 128, 192 with spectra) and `k4r4big`
+(n = 256), 3 seeds, depth 16, device MC truth (reuses round 1–3 caches); report section "Round 4".
+
+```bash
+git pull && bash scripts/gpu_run.sh --profile round4
+```
