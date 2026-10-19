@@ -72,3 +72,7 @@ three edges) are needed. Kill rules: ratio at 256 > 0.09; A ≥ 6 needed; no dro
 ```bash
 bash scripts/gpu_run.sh --profile round3
 ```
+
+Pass 2 (2026-10-19): families are also split by output order (`fam:-<family>_4` = the terms writing κ4,
+`_3` = those writing orders ≤ 3). The n = 256 rows need ≈ 2.5 n⁴ float32 = 40 GB of pool headroom; the
+peak is printed per row (`peak_mem_gb`) and an error row shows the failing frame of the traceback.

@@ -45,3 +45,74 @@ tensor-train family. At n = 48 (CPU, one seed) dropping the k3e births cost 7×;
 - K4c3/K3c2 at n = 256: not yet measured (pass 2).
 - Generations: unmeasurable by ablation (see above); rule void.
 - Families: two of four droppable → rule passed.
+
+---
+
+# Pass 2 (commit 09e789a, received 2026-10-19) — families split by output order; n = 256 still blocked
+
+> Raw report: `results/2026-10-18_gpu_round3_pass2_as_received.md`. n = 192, L = 16, 3 seeds, device MC
+> truth N = 1e7; ratios are geometric means over seeds, CI = bootstrap over seeds.
+
+## Families by output order at n = 192 (ratio to K4c3; "_4" = terms writing κ4, "_3" = terms writing orders ≤ 3)
+
+| removed | / K4c3 [95 % CI] | recovery | reading |
+|---|---|---|---|
+| rs_3 (random-sign κ4 block → mean/cov/κ3) | 4728 [1450, 19127] | −3.1 | the read-out of the κ4 memory; without it the chain is worse than K3c2 by 484× (unstable) |
+| k3e_3 (κ3 block + edge → orders ≤ 3) | 64.8 [58, 69] | −1.0 | essential |
+| k3e_4 (κ3 block + edge → κ4, the births) | 26.0 [19, 32] | −0.6 | essential |
+| rs_4 (transmission of the random-sign slices) | 13.0 [11, 16] | −0.2 | essential |
+| c3_3 (three edges → orders ≤ 3) | 1.74 [1.67, 1.81] | 0.73 | minor |
+| p4e_3 (paired κ4 + edge → orders ≤ 3) | 1.50 [1.40, 1.63] | 0.80 | minor |
+| c3_4 (three edges → κ4) | 1.03 [0.83, 1.22] | 0.99 | droppable |
+| p4e_4 (paired κ4 + edge → κ4) | 0.96 [0.77, 1.17] | 1.02 | droppable |
+
+Constructive sets (cost ≤ 2 terms always on):
+
+| kept | / K4c3 | recovery |
+|---|---|---|
+| rs + k3e_3 + p4e_3 (no κ4 births beyond cost 2) | 42.1 | −0.81 |
+| rs + k3e_3 + p4e_3 + c3_3 | 44.0 | −0.83 |
+| rs + k3e_3 + p4e_4 + p4e_3 | 30.8 | −0.66 |
+| rs + k3e_4 + k3e_3 + p4e_3 | **2.11** [1.70, 2.96] | 0.64 |
+| rs + k3e + p4e | 0.99 | 1.00 |
+| rs + k3e + c3 | 1.12 | 0.94 |
+
+Reading [measured, n = 192, L = 16; 3 seeds]:
+
+1. **The κ4 sources that matter are the κ3-block + edge births (k3e_4)**: without them, nothing else
+   recovers the gap (42×); with them and the cheap read-outs, 64 % of the log-gap is recovered. The
+   three-edge births (c3_4, the Gaussian-input κ4 sources) and the paired-κ4 + edge births (p4e_4)
+   add nothing at this width. For a factored chain this fixes the design: the random-sign κ4(z) must be
+   born from products of the factored κ3(h) slices with the covariance, not from covariance chains.
+2. **The read-out terms (rs_3) are the most important terms of the whole cap-3 set**: a factored κ4
+   memory is worthless unless its contraction into the mean/covariance/κ3 is computed (and it is what
+   stabilises the chain — removing it diverges, consistent with the gen:A finding of pass 1).
+3. The remaining 2.11× (recovery 0.64 → 1.0) comes from c3_3 and the p4e family jointly; each alone is
+   worth 1.5–1.7×, and both are O(n²)-state contractions in a factored chain (cheap). So the full
+   factored target is: rs (transmission + read-out) + k3e (births + read-out) + p4e_3 + c3_3; droppable:
+   c3_4, p4e_4 (the two κ4 births that would have needed tensor-train state built from three
+   covariance edges).
+4. [hypothesis] Whether these ratios hold at n = 1024 is untested; the per-family ratios at n = 192 are
+   the only measurement, and the width exponent of each family is unknown (pass 1 measured n = 192 only).
+
+## n = 256: all rows with the random-sign transmission terms failed again (OutOfMemoryError, 2^34 bytes, ~5 s)
+
+Diagnosed on the CPU (2026-10-19, `tracemalloc` peak at n = 72, float32): with the rs_4 terms on, the peak
+is **3.09 n⁴** instead of 2.50 n⁴. Cause: in `power_cumulants` the operand list `ops` of the *last*
+order-4 term survives the term loop; for configurations with rs_4 the last (1,1,1,1) term is the
+transmission term whose operand is the n⁴ pre-activation tensor itself, so `del Z[4]` did not free it
+and the symmetrizer's buffer was the third n⁴ tensor: 3 × 16 GiB = 48 GiB > the 46 GiB available (the
+2^34-byte allocation is exactly one n⁴ float32 tensor at n = 256). Pass 1's "fix" (broadcasting path,
+pool release) addressed a different, non-existent cause [the pass-1 diagnosis was wrong and is
+superseded]. Fix: `del ops, subs` after every term (commit of 2026-10-19); peak back to 2.50 n⁴ with
+rs_4 on, results unchanged (`tests/test_dense.py`). The report now prints the failing frame of the
+traceback in error rows. Rerun: `bash scripts/gpu_run.sh --profile round3` (only errored rows recompute).
+
+Rows that did run at n = 256 (3 seeds, ratio to K3c2 = 7.165e-6): K4c2 0.35 (0.42 at n = 192, 0.64 at 160,
+0.84 at 128 — falling, ≈ n^-1.3 over the last doubling); fam:−rs 0.70; fam:−rs_4 0.72; fam:+k3e+c3 0.62.
+
+## Status of the kill rules after pass 2
+
+- K4c3/K3c2 at n = 256 > 0.09 → still unmeasured (memory bug fixed, rerun pending).
+- Generations: void (unmeasurable by ablation, pass 1).
+- Families: c3_4 and p4e_4 droppable (≤ 1.03×) → passed; the expensive κ4 births from κ3 + edge are required.

@@ -457,6 +457,7 @@ class DenseProp:
                         del tmp
                     if self.record:
                         self.records.append((layer, t.tid))
+                    del ops, subs                  # the operand list of the last term would keep the n^4 tensor alive
                 if r == 4:
                     # the pre-activation kappa4 tensor is no longer needed: free it before the symmetrizer's buffer
                     if release and 4 in Z and sl.get((1, 1, 1, 1)) is Z[4]:

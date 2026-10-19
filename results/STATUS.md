@@ -72,3 +72,18 @@ nominating [AIcrowd 336554](https://www.aicrowd.com/challenges/arc-white-box-est
   spiked closure is 670–6000× worse: the bulk carries the mean. Spectral energy is the wrong metric.
 - K4 ladder (5 seeds, L = 16): 0.34/0.22/0.13 at n = 128/160/192 → GO stands; depth 8: 0.06/0.04/0.03.
 - Next: round 3 = structured κ4 memory oracle (κ4(h) as b, B, λ⊗C forms) at n ≤ 192; write-up.
+
+## 2026-10-18/19: GPU round 3 — see results/2026-10-18_gpu_round3_analysis.md
+
+- [measured, n = 192, L = 16, 3 seeds] Cost-3 families by output order (ratio to K4c3 when removed): the
+  random-sign read-outs rs_3 4728× (unstable without), k3e_3 65×, the κ3-block + edge κ4 births k3e_4 26×,
+  the random-sign transmissions rs_4 13×; c3_3 1.74, p4e_3 1.50; the κ4 births from three edges (c3_4,
+  1.03) and from paired κ4 + edge (p4e_4, 0.96) are droppable. Constructive: cheap + rs + k3e + p4e_3 =
+  2.11× K4c3 (64 % of the gap); without the k3e_4 births 42×.
+- [measured] κ4 generations cannot be ablated by term removal (transmitted κ4 without births diverges
+  at every width); question left open.
+- n = 256 K4 rows failed twice with a 16 GiB OOM: root cause found on the CPU (the last order-4 term's
+  operand list kept the n⁴ pre-activation alive → 3 n⁴ peak), fixed 2026-10-19; rerun pending.
+- Factored-κ4 design fixed by the family data: carry rs (transmission + read-out), k3e (births + read-out),
+  p4e_3, c3_3; drop c3_4, p4e_4. Width scaling of each family: unmeasured [open].
+- Next acceptance criterion: K4c3/K3c2 at n = 256 (kill > 0.09) from the rerun; then the write-up draft.

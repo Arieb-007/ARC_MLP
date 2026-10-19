@@ -289,7 +289,12 @@ def main():
                     vals = [v for v in col(cfg) if v is not None]
                     errs = [r["v"][cfg].get("error") for r in rows if cfg in r["v"] and r["v"][cfg].get("error")]
                     if errs and not vals:
-                        L.append(f"| {n} | {Lr} | {cfg} | error: {errs[0][:60]} | — | — | {sec:.0f} |"); continue
+                        tbs = [r["v"][cfg].get("traceback") or "" for r in rows if cfg in r["v"] and r["v"][cfg].get("error")]
+                        site = ""
+                        if tbs and tbs[0]:
+                            frames = [ln.strip() for ln in tbs[0].splitlines() if ln.strip().startswith("File ")]
+                            site = " @ " + frames[-1].replace("File ", "")[:90] if frames else ""
+                        L.append(f"| {n} | {Lr} | {cfg} | error: {errs[0][:60]}{site} | — | — | {sec:.0f} |"); continue
                     if vals and float(np.median(vals)) > 1e-2:
                         L.append(f"| {n} | {Lr} | {cfg} | diverged (median MSE {np.median(vals):.1e}) | — | — | {sec:.0f} |"); continue
                     out["k4_r3"][f"n{n}_L{Lr}_{cfg}"] = dict(n=n, L=Lr, cfg=cfg, ratio_K4c3=r4[:3], ratio_K3c2=r3c[:3], recovery=rec_, seconds=sec)
