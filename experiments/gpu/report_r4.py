@@ -17,9 +17,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import paired_log_ratio  # noqa: E402
 
 G1_MAX, NONLIN_MAX, G2_MIN, BF_DIVERGE = 1.3, 0.1, 0.5, 10.0
+MIN_GAP = 1.5   # recovery is undefined when K3c3 and K4c3 differ by less than this factor (log-gap ~ 0)
 ORDER = ["lr:bg", "lr:twoway", "lr:oneway", "lr:oneway:eps=0.5", "lr:oneway:ro=1", "lr:oneway:ro=2", "lr:oneway:ro=4",
          "lr:oneway:b=1", "lr:oneway:b=2", "lr:oneway:b=4", "lr:oneway:b=8", "lr:oneway:ro=1:b=4",
-         "lr:oneway:bf=4", "lr:oneway:bf=8", "lr:oneway:kind=coh", "lr:oneway:kind=rs", "lr:oneway:rank"]
+         "lr:oneway:bf=4", "lr:oneway:bf=8", "lr:oneway:kind=coh", "lr:oneway:kind=rs", "lr:oneway:eps=0.25",
+         "lr:oneway:eps=0.75", "lr:oneway:rank"]
 MEANING = {
     "lr:bg": "background only (= K3c3)", "lr:twoway": "two-way (= K4c3; check)", "lr:oneway": "one-way, all on",
     "lr:oneway:eps=0.5": "read-outs × 0.5", "lr:oneway:ro=1": "read-outs at the last step only (direct path)",
@@ -29,6 +31,7 @@ MEANING = {
     "lr:oneway:bf=4": "births only in the first 4 steps", "lr:oneway:bf=8": "births only in the first 8 steps",
     "lr:oneway:kind=coh": "read-outs through paired z-slices only", "lr:oneway:kind=rs": "read-outs through random-sign z-slices only",
     "lr:oneway:rank": "one-way + spectra (same result as lr:oneway)",
+    "lr:oneway:eps=0.25": "read-outs × 0.25 (post hoc)", "lr:oneway:eps=0.75": "read-outs × 0.75 (post hoc)",
 }
 
 
@@ -54,7 +57,7 @@ def section(rows_all):
     L = ["", "### Round 4 — linear response of the κ4 memory (rules: docs/notes/r4_prereg_linear_response.md)", "",
          "Three chains in lockstep: background S̄ (= K3c3), κ4 probe driven by S̄ (one-way) or by S (two-way = K4c3), perturbed chain S "
          "receiving the probe's read-outs. Ratios: geometric means over seeds, paired bootstrap CI. 'recovery' = 1 − log(cfg/K4c3)/log(K3c3/K4c3) "
-         "against the MC truth; 'resid' = ‖μ_cfg − μ_K4c3‖² / ‖μ_K3c3 − μ_K4c3‖² (truth-free; 0 = K4c3, 1 = K3c3).", "",
+         "against the MC truth (shown only when K3c3/K4c3 ≥ 1.5); 'resid' = ‖μ_cfg − μ_K4c3‖² / ‖μ_K3c3 − μ_K4c3‖² (truth-free; 0 = K4c3, 1 = K3c3).", "",
          "| n | L | config | meaning | / K4c3 [95% CI] | recovery | resid | s/run | errors |", "|---|---|---|---|---|---|---|---|---|"]
     gates = {}
     for (n, Lr), rows in sorted(byn.items()):
@@ -95,7 +98,7 @@ def section(rows_all):
                 L.append(f"| {n} | {Lr} | {cfg} | {MEANING.get(cfg, '')} | error: {errs[0][:70]} | — | — | {sec:.0f} | {len(errs)} |")
                 continue
             r4 = ratio(cfg, "K4c3")
-            rec = 1.0 - np.log(r4[0]) / np.log(gap[0]) if np.isfinite(r4[0]) and np.isfinite(gap[0]) and gap[0] > 1 else np.nan
+            rec = 1.0 - np.log(r4[0]) / np.log(gap[0]) if np.isfinite(r4[0]) and np.isfinite(gap[0]) and gap[0] >= MIN_GAP else np.nan
             rs = resid(cfg)
             refs = [x for x in col(k3name) + col("K4c3") if x is not None and np.isfinite(x) and x > 0]
             med = float(np.median(vals)) if vals else np.nan
@@ -119,7 +122,7 @@ def section(rows_all):
             gr = []
             for r in rows:
                 pn = r["v"].get(cfg, {}).get("pnorm")
-                if pn and len(pn) == Lr and pn[A - 1] > 0 and np.isfinite(pn[-1]):
+                if pn and len(pn) == Lr and Lr > A and pn[A - 1] > 0 and np.isfinite(pn[-1]):
                     gr.append((pn[-1] / pn[A - 1]) ** (1.0 / (Lr - A)))
             g[f"growth_bf{A}"] = float(np.median(gr)) if gr else np.nan
     out["rows"] = {f"n{n}": g for n, g in gates.items()}
@@ -134,7 +137,9 @@ def section(rows_all):
         nlv = g.get("nonlinearity", np.nan)
         g1 = "—" if not np.isfinite(g1r) else ("**pass**" if g1r <= G1_MAX and (not np.isfinite(nlv) or nlv <= NONLIN_MAX) else "**fail**")
         g2v = cheap.get("recovery", np.nan)
-        g2 = "—" if not np.isfinite(g2v) else ("**viable**" if g2v >= G2_MIN else "**not viable**")
+        g2 = (f"— (K3c3/K4c3 = {_f(g['gap_K3c3_K4c3'][0])} < {MIN_GAP}: no gap to recover)" if not np.isfinite(g2v)
+              else ("**viable**" if g2v >= G2_MIN else "**not viable**"))
+        g2 += f", truth-free resid = {_f(cheap.get('resid', np.nan), 3)}"
         g4 = "—" if not (bf4 or bf8) else ("**finite** (round 3's gen:A divergence was the inconsistent filter)"
                                           if not (bf4.get("diverged") or bf8.get("diverged")) else "**diverged** (expanding transport)")
         L += [f"- n = {n}: P0 two-way/K4c3 = {_f(p0, 3)} (must be 1.00 ± 0.02); G1 one-way/K4c3 = {_f(g1r)} (≤ {G1_MAX}), "

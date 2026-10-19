@@ -101,3 +101,17 @@ nominating [AIcrowd 336554](https://www.aicrowd.com/challenges/arc-white-box-est
 - Phase 2 closes 2026-10-21 23:59 UTC: nothing from this program can be submitted; it is write-up material
   and the post-deadline plan. Next acceptance criterion: (a) write-up draft with the 1024 tables and the
   round-3 ladder; (b) if GPU time remains, round 4 = rank oracle of the dense κ4 memory at n = 192/256.
+
+## 2026-10-19: round 4 built (linear response of the κ4 memory) + CPU preliminary
+
+- Code: `arcmlp/estimators/linear_response.py` (two-way == K4c3 exactly, tests), profile `round4`, rules
+  `docs/notes/r4_prereg_linear_response.md` (+ post-hoc addendum: read-out strength sweep).
+- [measured, CPU, n = 64 L = 8 (3 seeds), n = 96 L = 16 (1 seed); `results/2026-10-19_r4_cpu_prelim.md`]
+  the κ4 effect is a linear response around the K = 3 trajectory (nonlinearity ≤ 0.003; one-way 0.55–0.83× K4c3);
+  the direct path into the final means carries 0–13 % of it (cheap add-on fails); the memory spans the
+  depth and the transport contracts (0.75–0.77× per layer) — round 3's "births regulate" reading is
+  superseded (the gen:A divergence was the inconsistent filter); the κ4 bulk is low-rank at n = 64 (k90 ≈ 46);
+  half-strength read-outs beat K4c3 (exploratory).
+- [measured] n = 64 at depth 16 is not perturbative (K4c3 24× worse than K3c3).
+- Next acceptance criterion: GPU round 4 at n = 128/192/256 (G1, G3 rank growth, ε sweep); then the
+  write-up. Phase 2 closes 2026-10-21 23:59 UTC: none of this can be submitted in Phase 2.

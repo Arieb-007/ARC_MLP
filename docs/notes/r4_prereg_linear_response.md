@@ -62,3 +62,11 @@ Recovery = 1 − log(cfg / K4c3) / log(K3c3 / K4c3), paired over seeds (1 = K4c3
 - **G3 (rank, exploratory)**: energy fraction of the random-sign bulk of P (index-distinct entries,
   (ab)(cd) unfolding) in its top 64 singular directions at n = 128 and 192. A compressed-memory chain
   is viable only if the rank for 90 % energy grows by less than 1.3× from 128 to 192.
+
+## Addendum (2026-10-19, after the CPU preliminary `results/2026-10-19_r4_cpu_prelim.md`, before any GPU run)
+
+Post hoc and exploratory: the preliminary showed read-outs at half strength beating K4c3 (n = 96, L = 16,
+one seed: 6.9e-6 vs 2.6e-5). `lr:oneway:eps=0.25` and `eps=0.75` are added to the GPU set to map the
+optimum. Falsifier for "a transferable damping constant": the best ε among {0.25, 0.5, 0.75, 1} differs
+between n = 192 and n = 256, or the gain of the best ε over ε = 1 shrinks by more than half from 192 to
+256 (then it is a finite-width overshoot of the cap-3 truncation that vanishes at 1024, not a constant).

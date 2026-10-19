@@ -305,4 +305,6 @@ def parse_lr(cfg):
 
 ROUND4 = ("lr:bg,lr:twoway,lr:oneway,lr:oneway:eps=0.5,lr:oneway:ro=1,lr:oneway:ro=2,lr:oneway:ro=4,"
           "lr:oneway:b=1,lr:oneway:b=2,lr:oneway:b=4,lr:oneway:b=8,lr:oneway:ro=1:b=4,"
-          "lr:oneway:bf=4,lr:oneway:bf=8,lr:oneway:kind=coh,lr:oneway:kind=rs")
+          "lr:oneway:bf=4,lr:oneway:bf=8,lr:oneway:kind=coh,lr:oneway:kind=rs,"
+          # added after the CPU preliminary of 2026-10-19 (post hoc, exploratory): read-out strength sweep
+          "lr:oneway:eps=0.25,lr:oneway:eps=0.75")
