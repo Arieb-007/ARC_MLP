@@ -76,3 +76,18 @@ def test_rank_diagnostics_record():
     whats = sorted({(d["layer"], d["what"]) for d in pr.extra["rank"]})
     assert whats == [(2, "birth"), (2, "probe"), (3, "birth"), (3, "probe")]
     assert len(pr.extra["pnorm"]) == 5
+
+
+def test_peak_memory_of_order4_chains():
+    """The n^4 pre-activation must be built with at most two n^4 buffers alive (regression of 2026-10-20:
+    passing the state tensor itself to mode4 kept it alive in the caller -> 3.5 n^4 peak, OOM at n = 256)."""
+    import tracemalloc
+    n = 72                                              # large enough that the n^3 arrays are a small fraction
+    Ws = _ws(n=n, L=2)
+    unit = n ** 4 * 4                                   # float32 at n > 64
+    for make in (lambda: dc.DenseProp(Kt=4, cap=3), lambda: LinearResponseProp(**parse_lr("lr:oneway"))):
+        tracemalloc.start()
+        make().run(Ws)
+        peak = tracemalloc.get_traced_memory()[1] / unit
+        tracemalloc.stop()
+        assert peak < 2.75, peak

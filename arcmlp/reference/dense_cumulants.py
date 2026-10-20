@@ -281,19 +281,18 @@ def linear_step(K, W, Kt, consume=False):
         Z[3] = xp.ascontiguousarray(xp.transpose(T, (2, 1, 0)))
         del T
     if Kt >= 4:
-        T = K[4]
-        if consume:
-            del K[4]                       # the caller's state tensor is released as soon as possible
-        Z[4] = mode4(T, W)
-        del T
+        # consume: the caller's state tensor is handed over (no reference left here), so mode4 can free it
+        Z[4] = mode4([K.pop(4)] if consume else [K[4]], W)
     return Z
 
 
-def mode4(T, W):
-    """W^{(x)4} . T for a dense order-4 tensor, in row chunks (two n^4 buffers at most). The caller should
-    drop its own reference to T to let the first buffer go."""
+def mode4(holder, W):
+    """W^{(x)4} . T for a dense order-4 tensor T = holder.pop() (a one-element list: the caller must keep no
+    other reference, so that T is freed after the first mode product), in row chunks: two n^4 buffers at most.
+    Passing T itself would keep it alive in the caller's frame for the whole product (3 n^4 peak)."""
     xp = get_array_module(W)
     n = W.shape[0]
+    T = holder.pop()
     for ax in range(4):
         out = xp.empty((n,) * 4, dtype=T.dtype)
         step = max(1, min(n, K4_CHUNK_ROWS))

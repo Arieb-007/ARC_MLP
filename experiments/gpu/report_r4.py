@@ -137,8 +137,9 @@ def section(rows_all):
         nlv = g.get("nonlinearity", np.nan)
         g1 = "—" if not np.isfinite(g1r) else ("**pass**" if g1r <= G1_MAX and (not np.isfinite(nlv) or nlv <= NONLIN_MAX) else "**fail**")
         g2v = cheap.get("recovery", np.nan)
-        g2 = (f"— (K3c3/K4c3 = {_f(g['gap_K3c3_K4c3'][0])} < {MIN_GAP}: no gap to recover)" if not np.isfinite(g2v)
-              else ("**viable**" if g2v >= G2_MIN else "**not viable**"))
+        gp = g["gap_K3c3_K4c3"][0]
+        g2 = ((f"— (K3c3/K4c3 = {_f(gp)} < {MIN_GAP}: no gap to recover)" if np.isfinite(gp) and gp < MIN_GAP else "— (no data)")
+              if not np.isfinite(g2v) else ("**viable**" if g2v >= G2_MIN else "**not viable**"))
         g2 += f", truth-free resid = {_f(cheap.get('resid', np.nan), 3)}"
         g4 = "—" if not (bf4 or bf8) else ("**finite** (round 3's gen:A divergence was the inconsistent filter)"
                                           if not (bf4.get("diverged") or bf8.get("diverged")) else "**diverged** (expanding transport)")

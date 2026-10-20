@@ -197,8 +197,9 @@ class LinearResponseProp:
                 continue
             Zs = dc.linear_step(Ks, W, 3)
             del Ks
-            Z4 = dc.mode4(P, W)
-            del P
+            holder = [P]
+            del P                      # mode4 owns the only reference: freed after the first mode product
+            Z4 = dc.mode4(holder, W)
             free_pool()
             # perturbed chain: background terms on S + eps * read-outs of the probe's pre-activation
             pKs = self.p3.power_cumulants(Zs, l)

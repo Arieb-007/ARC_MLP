@@ -70,3 +70,13 @@ one seed: 6.9e-6 vs 2.6e-5). `lr:oneway:eps=0.25` and `eps=0.75` are added to th
 optimum. Falsifier for "a transferable damping constant": the best ε among {0.25, 0.5, 0.75, 1} differs
 between n = 192 and n = 256, or the gain of the best ε over ε = 1 shrinks by more than half from 192 to
 256 (then it is a finite-width overshoot of the cap-3 truncation that vanishes at 1024, not a constant).
+
+## Outcome (GPU, 2026-10-20, results/2026-10-20_gpu_round4_analysis.md; n = 128 and 192, 3 seeds; n = 256 failed from a memory regression of mine)
+
+- P0: two-way / K4c3 = 0.998 / 1.000 — **passed**.
+- G1: one-way / K4c3 = 0.53 / 0.63, nonlinearity 0.001 / 0.000 — **passed** (prediction 1.0–1.15 falsified on the
+  favourable side: the one-way chain is more accurate than K4c3).
+- G2: direct path + 4 generations recovers 0.00 at both widths — **failed** (cheap add-on dead).
+- G4: births only early stay finite, transport contracts (0.73–0.95 per layer) — **passed** (prediction confirmed).
+- G3: k90 grows 1.9–2.5× from 128 to 192 at layers 8–12 — **failed** (compressed memory at fixed rank dead).
+- Addendum (ε): best ε moves 0.5 → 0.75 → 1 for n = 96 → 128 → 192 — finite-width artefact, not a constant.

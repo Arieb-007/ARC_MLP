@@ -115,3 +115,16 @@ nominating [AIcrowd 336554](https://www.aicrowd.com/challenges/arc-white-box-est
 - [measured] n = 64 at depth 16 is not perturbative (K4c3 24× worse than K3c3).
 - Next acceptance criterion: GPU round 4 at n = 128/192/256 (G1, G3 rank growth, ε sweep); then the
   write-up. Phase 2 closes 2026-10-21 23:59 UTC: none of this can be submitted in Phase 2.
+
+## 2026-10-20: GPU round 4 (results/2026-10-20_gpu_round4_analysis.md)
+
+- [measured, n = 128/192, L = 16, 3 seeds] The κ4 effect is a linear response around the K = 3 trajectory
+  (one-way 0.53/0.63× K4c3, nonlinearity ≤ 0.001); no cheap add-on (direct path + 4 generations: 0 %); the
+  effect is born early, carried with a per-layer contraction that weakens with n (0.73 → 0.84–0.95), read
+  out at every layer mainly through paired z-slices (82 % at 192); mid-depth rank of the κ4 bulk grows ~ n²
+  (fixed-rank compressed memory fails G3). The ε damping is a finite-width artefact.
+- n = 256 rows failed: memory regression of commit ce09028 (3.5 n⁴ peak), fixed with a regression test.
+- Open: is the read-out-relevant part of the κ4 memory low-dimensional (rank-truncated probe)? It is the
+  last route for the factored program; it cannot reach Phase 2 (closes 2026-10-21 23:59 UTC).
+- Next acceptance criterion: the write-up draft (due 2026-10-28) with the 1024 tables and rounds 1–4;
+  optional GPU: n = 256 rerun of round 4 (`--profile round4`, only the failed rows recompute).
