@@ -307,10 +307,15 @@ def main():
                   "or no family can be dropped (every fam:−x loses ≥ 50 % of the gap).", ""]
         # round 4: linear response of the kappa4 memory
         from report_r4 import section as r4_section
+        from report_r5 import section as r5_section
         r4_lines, r4_out = r4_section(k4)
         if r4_lines:
             L += r4_lines
             out["k4_r4"] = r4_out
+        r5_lines, r5_out = r5_section(k4)
+        if r5_lines:
+            L += r5_lines
+            out["k4_r5"] = r5_out
         l16 = [r for r in out["k4"].values() if isinstance(r, dict) and r.get("L") == 16] or [r for r in out["k4"].values() if isinstance(r, dict)]
         big = max(l16, key=lambda r: r["n"])
         r0 = big["ratio_K4c3_K3c2"]

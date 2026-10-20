@@ -91,3 +91,17 @@ variant equals K4c3 exactly, `tests/test_linear_response.py`). Rules, written be
 ```bash
 git pull && bash scripts/gpu_run.sh --profile round4
 ```
+
+## Round 5 (`--profile round5`, ~1 h): the (2,1,1) κ4 slice is a rank-n CP object — how much rank is needed?
+
+Theorem A of `docs/notes/r5_cp_memory_theorem.md`: with the (1,1,1,1) bulk dropped, the (2,1,1) and (3,1)
+slices of the κ4 memory are exactly CP of rank n per generation and every operation on them is O(n³);
+Proposition B: any n × n-matrix closure of the (2,1,1) channel (λ·C, a partial trace) is capped at
+R² ≈ f + (1 − f)/3 by the fluctuation of W² around its mean. Oracle (`arcmlp/estimators/a211_oracle.py`):
+dense K4c3 without the bulk, with the (2,1,1) input slice projected to its top-r (j | kl) directions
+after every linear step (`a211:r`, r = 1, 4, 16, 64, 256) and the (j | kl) spectrum recorded (`a211:spec`).
+Kill rule: the r giving ≤ 1.3 × `K4c3-no1111` must not grow ∝ n from 192 to 256.
+
+```bash
+git pull && bash scripts/gpu_run.sh --profile round5
+```

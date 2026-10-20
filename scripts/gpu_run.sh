@@ -5,7 +5,7 @@
 #   git clone https://github.com/Arieb-007/ARC_MLP && cd ARC_MLP && bash scripts/gpu_run.sh
 #
 # Options (flags or environment variables):
-#   --profile smoke|quick|fast|full|round2|round3|round4   (default fast)    --stages all|setup,smoke,data,cpu,gpu,corrector,report
+#   --profile smoke|quick|fast|full|round2|round3|round4|round5   (default fast)    --stages all|setup,smoke,data,cpu,gpu,corrector,report
 #   --dataset hf://aicrowd/arc-whestbench-public-2026@v2-phase2   --split mini   --device auto|cuda|cpu   --push
 # Everything is resumable: finished (variant, MLP) results are skipped on a rerun. Logs: data/gpu/logs/.
 # Output: results/<date>_gpu_run.md (+ .json); with --push also committed to branch gpu-results-<date>.
@@ -54,11 +54,14 @@ case "$PROFILE" in
   round3) K4_N=${K4_N:-"256"}; K4_SEEDS=${K4_SEEDS:-0-4}; K4_NMC=${K4_NMC:-1e7}; K4_CONFIGS=${K4_CONFIGS:-K3c2,K4c2,K4c3}; K4_EXTRA="--chunk-rows 16"
          R3_N=${R3_N:-"192 256"}; R3_SEEDS=${R3_SEEDS:-0-2}; R3_CONFIGS=${R3_CONFIGS:-round3}
          FETCH_IDX=${FETCH_IDX:-0-0}; BASE_IDX=${BASE_IDX:-0-0}; SWEEP_IDX=0-0; CONFIRM_IDX=0-0; DENSE_IDX=0-0; DENSE_VARIANTS=K2; MC_IDX=0; MC_N=1e6
-         TRAIN_IDX=0-0; TEST_IDX=0-0; SWEEP_VARIANTS=""; STAGES=${STAGES_OVERRIDE:-setup,smoke,k4,k4r3,report};;
+         TRAIN_IDX=0-0; TEST_IDX=0-0; SWEEP_VARIANTS=""; STAGES=${STAGES_OVERRIDE:-setup,smoke,gpu,k4r3,report};;
   round4) K4_N=${K4_N:-"256"}; K4_SEEDS=${K4_SEEDS:-0-2}; K4_NMC=${K4_NMC:-1e7}; K4_CONFIGS=${K4_CONFIGS:-K3c3,K4c3}; K4_EXTRA="--chunk-rows 16"
          R4_N=${R4_N:-"128 192"}; R4_N_BIG=${R4_N_BIG:-"256"}; R4_SEEDS=${R4_SEEDS:-0-2}
          FETCH_IDX=${FETCH_IDX:-0-0}; BASE_IDX=${BASE_IDX:-0-0}; SWEEP_IDX=0-0; CONFIRM_IDX=0-0; DENSE_IDX=0-0; DENSE_VARIANTS=K2; MC_IDX=0; MC_N=1e6
          TRAIN_IDX=0-0; TEST_IDX=0-0; SWEEP_VARIANTS=""; STAGES=${STAGES_OVERRIDE:-setup,smoke,k4r4,report};;
+  round5) K4_N=${K4_N:-"192 256"}; K4_SEEDS=${K4_SEEDS:-0-2}; K4_NMC=${K4_NMC:-1e7}; K4_CONFIGS=${K4_CONFIGS:-round5}; K4_EXTRA="--chunk-rows 16"
+         FETCH_IDX=${FETCH_IDX:-0-0}; BASE_IDX=${BASE_IDX:-0-0}; SWEEP_IDX=0-0; CONFIRM_IDX=0-0; DENSE_IDX=0-0; DENSE_VARIANTS=K2; MC_IDX=0; MC_N=1e6
+         TRAIN_IDX=0-0; TEST_IDX=0-0; SWEEP_VARIANTS=""; STAGES=${STAGES_OVERRIDE:-setup,smoke,gpu,report};;
   *) echo "unknown profile $PROFILE" >&2; exit 2;;
 esac
 [ "$K4_CONFIGS" = all ] && K4_CONFIGS="K3c2,K3c3,K4c2,K4c3,K4c3-no31,K4c3-no211,K4c3-no1111,paired_c3,paired_c3+31,paired_c3+211,coh2,ex4c2"
