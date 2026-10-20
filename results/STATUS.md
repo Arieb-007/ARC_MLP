@@ -128,3 +128,17 @@ nominating [AIcrowd 336554](https://www.aicrowd.com/challenges/arc-white-box-est
   last route for the factored program; it cannot reach Phase 2 (closes 2026-10-21 23:59 UTC).
 - Next acceptance criterion: the write-up draft (due 2026-10-28) with the 1024 tables and rounds 1–4;
   optional GPU: n = 256 rerun of round 4 (`--profile round4`, only the failed rows recompute).
+
+## 2026-10-20: round 5 — a theorem for the random-sign κ4 memory (docs/notes/r5_cp_memory_theorem.md)
+
+- [proven] With the (1,1,1,1) bulk dropped, the (2,1,1) and (3,1) κ4 slices are exactly CP of rank n per
+  generation and every transport, birth and read-out is O(n³); generations merge by an n × n Gram eigenproblem.
+  The cost knob is the kept rank r of the (j | kl) unfolding (as V29's r_old for κ3).
+- [derived] Any single-matrix closure of the (2,1,1) channel (λ·C, partial trace) captures ≤ f + (1 − f)/3 of
+  it (W² fluctuates by √2 of its mean); optimal coefficients of partial closures are Wiener-shrunk — explains
+  V29's λ at 1/3 of the physical value and round 4's ε optimum drifting to 1.
+- [measured, CPU, n = 64 L = 8, n = 96 L = 16] rank 16 reproduces the bulk-dropped chain within 1–7 %; the
+  slice's energy is 49–80 % in one direction and 40–69 % along the partial-trace direction (Proposition B's
+  0.15–0.35 falsified on the favourable side); the bulk costs 1.1× (depth 8) to 2.2× (depth 16).
+- Next acceptance criterion: GPU round 5 at n = 192/256 (`--profile round5`): the rank r(n) for ≤ 1.3 × of
+  K4c3-no1111 (kill: r ∝ n) and f_ones(n). Phase 2 closes 2026-10-21 23:59 UTC; this is next-phase work.

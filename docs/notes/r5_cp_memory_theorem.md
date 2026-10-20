@@ -81,3 +81,13 @@ transport is 3r/n units → with r = 64 and 4 families ≈ 2–3 units/layer ≈
 confirms r = 64: V30 raw ≈ 1.8 × K4c3(1024) ≈ 1.5e-9 … 1.2e-8 [hypothesis, from the n^-2.5 … n^-1 ratio laws]
 at C/B ≈ 0.29 → score 0.4 … 3.4e-9 against the leader's 1.42e-9. Phase 2 closes 2026-10-21 23:59 UTC; this
 is for the next phase.
+
+## Outcome of the CPU preliminary (2026-10-20, results/2026-10-20_r5_cpu_prelim.md; n = 64 L = 8, n = 96 L = 16)
+
+- Rank: r = 16 within 1–7 % of the bulk-dropped chain, r = 64 within 2 % — consistent with the hypothesis;
+  the n-growth test needs the GPU widths.
+- Proposition B's energy prediction **falsified** (f1 = 0.49–0.80, f_ones = 0.40–0.69, growing with depth,
+  versus 0.15–0.35 predicted): the (2,1,1) slice is more j-coherent than assumed. The √2 fluctuation bound
+  on the incoherent remainder is unaffected; the remainder is smaller. A dynamical partial trace is a
+  candidate O(n³) closure in its own right (added to the round-5 GPU set as `a211:1` ≈ its ceiling).
+- Bulk: 1.1× (depth 8) to 2.2× (depth 16) — the floor of the CP program at depth 16.

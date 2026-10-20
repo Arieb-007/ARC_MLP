@@ -144,8 +144,7 @@ def main():
                     dm = debiased_mse(mus[-1], tr)
                     res["v"][cfg] = dict(mse=dm["debiased"], raw=dm["raw"], se=dm["se"], seconds=time.time() - t0,
                                          peak_mem_gb=peak_mem_gb(), error=None)
-                    if cfg.startswith("lr:") or cfg.startswith("a211:") or cfg in ("K3c3", "K4c3", "K4c3-no1111"):
-                        res["v"][cfg]["mu"] = [float(x) for x in mus[-1]]   # final-layer means (linearity, paths)
+                    res["v"][cfg]["mu"] = [float(x) for x in mus[-1]]   # final-layer means (truth-free residuals, linearity)
                     if cfg.startswith("a211:"):
                         res["v"][cfg]["diag"] = pr.diag
                     if getattr(pr, "extra", None):
