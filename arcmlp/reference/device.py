@@ -100,3 +100,15 @@ def peak_mem_gb(reset=True):
     if reset:
         _hwm = 0
     return v
+
+
+def free_mem_gb():
+    """(free, total) device memory in GB from cudaMemGetInfo, or None on the CPU."""
+    cp = _cp if _cp else None
+    if cp is None:
+        return None
+    try:
+        free, total = cp.cuda.runtime.memGetInfo()
+        return (free / 2 ** 30, total / 2 ** 30)
+    except Exception:   # noqa: BLE001
+        return None

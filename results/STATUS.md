@@ -142,3 +142,13 @@ nominating [AIcrowd 336554](https://www.aicrowd.com/challenges/arc-white-box-est
   0.15–0.35 falsified on the favourable side); the bulk costs 1.1× (depth 8) to 2.2× (depth 16).
 - Next acceptance criterion: GPU round 5 at n = 192/256 (`--profile round5`): the rank r(n) for ≤ 1.3 × of
   K4c3-no1111 (kill: r ∝ n) and f_ones(n). Phase 2 closes 2026-10-21 23:59 UTC; this is next-phase work.
+
+## 2026-10-22: GPU round 5 at n = 192 (results/2026-10-21_gpu_round5_analysis.md)
+
+- [measured, 3 seeds, L = 16] bulk dropped: 1.80× K4c3; (2,1,1) slice at (j | kl) rank 64: 1.07× of that,
+  rank 16: 1.20×, rank 4: 1.34×, rank 1: 1.52×. r(1.3×) ≈ 8 at both n = 96 and 192 (no proportional growth
+  yet; the 256 comparison is missing). Spectrum: top direction 45–81 %, partial-trace direction 44–73 % of
+  the slice's energy, growing with depth, flat in n — Proposition B's 0.15–0.35 falsified at every width.
+- n = 256 rows failed instantly (OOM, 16 GiB) for the second run; mitigated by one-process-per-configuration,
+  free-memory logging, a retry and cycle breaking (not yet verified on the GPU).
+- Next acceptance criterion: `bash scripts/gpu_run.sh --profile round5` → the n = 256 rank curve (kill: r ∝ n).

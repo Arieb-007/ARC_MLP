@@ -11,6 +11,7 @@ Configs are feature sets of experiments/w5_selection.py (a term is on iff every 
 from __future__ import annotations
 
 import argparse
+import gc
 import json
 import os
 import sys
@@ -29,7 +30,7 @@ from arcmlp.estimators.coherent_even import CoherentEvenProp  # noqa: E402
 from arcmlp.estimators.linear_response import ROUND4, LinearResponseProp, parse_lr  # noqa: E402
 from arcmlp.estimators.a211_oracle import ROUND5, A211Oracle, parse_a211  # noqa: E402
 from arcmlp.reference import dense_cumulants as dc  # noqa: E402
-from arcmlp.reference.device import device_info, free_pool, peak_mem_gb, resolve_device  # noqa: E402
+from arcmlp.reference.device import device_info, free_mem_gb, free_pool, peak_mem_gb, resolve_device  # noqa: E402
 from arcmlp.reference.mc import cached_truth, debiased_mse  # noqa: E402
 from w5_selection import FEATURES, K3F, K4F, gates  # noqa: E402
 
@@ -138,12 +139,22 @@ def main():
                 if cfg in res["v"] and res["v"][cfg].get("error") is None:
                     continue
                 t0 = time.time()
+                gc.collect(); free_pool()
+                mem0 = free_mem_gb()
                 try:
                     pr = make_prop(cfg, dev, Ws)
-                    mus = pr.run(Ws)[0]
+                    try:
+                        mus = pr.run(Ws)[0]
+                    except Exception as e:          # one retry after a full release (pool fragmentation, cycles)
+                        if "OutOfMemory" not in type(e).__name__ and "memory" not in str(e).lower():
+                            raise
+                        print(f"  {cfg}: {type(e).__name__} with {free_mem_gb()} GB free before; retrying once", flush=True)
+                        del pr; gc.collect(); free_pool()
+                        pr = make_prop(cfg, dev, Ws)
+                        mus = pr.run(Ws)[0]
                     dm = debiased_mse(mus[-1], tr)
                     res["v"][cfg] = dict(mse=dm["debiased"], raw=dm["raw"], se=dm["se"], seconds=time.time() - t0,
-                                         peak_mem_gb=peak_mem_gb(), error=None)
+                                         peak_mem_gb=peak_mem_gb(), error=None, mem_free_before_gb=mem0)
                     res["v"][cfg]["mu"] = [float(x) for x in mus[-1]]   # final-layer means (truth-free residuals, linearity)
                     if cfg.startswith("a211:"):
                         res["v"][cfg]["diag"] = pr.diag
@@ -159,9 +170,14 @@ def main():
                     del pr
                 except Exception as e:
                     res["v"][cfg] = dict(mse=None, error=f"{type(e).__name__}: {str(e)[:200]}", seconds=time.time() - t0,
-                                         traceback=traceback.format_exc()[-800:])
+                                         traceback=traceback.format_exc()[-800:], mem_free_before_gb=mem0,
+                                         mem_free_after_gb=free_mem_gb())
                 res["v"][cfg]["commit"] = COMMIT
-                free_pool()
+                if "pr" in dir():
+                    if hasattr(pr, "prop"):
+                        pr.prop.slice_hook = None       # break the oracle <-> DenseProp reference cycle
+                    del pr
+                gc.collect(); free_pool()
                 write_json(path, res)
                 r = res["v"][cfg]
                 print(f"n={n} L={a.L} s={sd} {cfg:16s} mse={r['mse'] if r['mse'] is None else f'{r['mse']:.3e}'} "

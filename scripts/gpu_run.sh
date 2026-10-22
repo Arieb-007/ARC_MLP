@@ -59,9 +59,10 @@ case "$PROFILE" in
          R4_N=${R4_N:-"128 192"}; R4_N_BIG=${R4_N_BIG:-"256"}; R4_SEEDS=${R4_SEEDS:-0-2}
          FETCH_IDX=${FETCH_IDX:-0-0}; BASE_IDX=${BASE_IDX:-0-0}; SWEEP_IDX=0-0; CONFIRM_IDX=0-0; DENSE_IDX=0-0; DENSE_VARIANTS=K2; MC_IDX=0; MC_N=1e6
          TRAIN_IDX=0-0; TEST_IDX=0-0; SWEEP_VARIANTS=""; STAGES=${STAGES_OVERRIDE:-setup,smoke,k4r4,report};;
-  round5) K4_N=${K4_N:-"192 256"}; K4_SEEDS=${K4_SEEDS:-0-2}; K4_NMC=${K4_NMC:-1e7}; K4_CONFIGS=${K4_CONFIGS:-round5}; K4_EXTRA="--chunk-rows 16"
+  round5) K4_N=${K4_N:-"192"}; K4_SEEDS=${K4_SEEDS:-0-2}; K4_NMC=${K4_NMC:-1e7}; K4_CONFIGS=${K4_CONFIGS:-round5}; K4_EXTRA="--chunk-rows 16"
+         R5_N_BIG=${R5_N_BIG:-"256"}; R5_BIG_CONFIGS=${R5_BIG_CONFIGS:-"K4c3-no1111 a211:spec a211:16 a211:64 a211:4 a211:1 a211:256"}
          FETCH_IDX=${FETCH_IDX:-0-0}; BASE_IDX=${BASE_IDX:-0-0}; SWEEP_IDX=0-0; CONFIRM_IDX=0-0; DENSE_IDX=0-0; DENSE_VARIANTS=K2; MC_IDX=0; MC_N=1e6
-         TRAIN_IDX=0-0; TEST_IDX=0-0; SWEEP_VARIANTS=""; STAGES=${STAGES_OVERRIDE:-setup,smoke,gpu,report};;
+         TRAIN_IDX=0-0; TEST_IDX=0-0; SWEEP_VARIANTS=""; STAGES=${STAGES_OVERRIDE:-setup,smoke,gpu,k4r5big,report};;
   *) echo "unknown profile $PROFILE" >&2; exit 2;;
 esac
 [ "$K4_CONFIGS" = all ] && K4_CONFIGS="K3c2,K3c3,K4c2,K4c3,K4c3-no31,K4c3-no211,K4c3-no1111,paired_c3,paired_c3+31,paired_c3+211,coh2,ex4c2"
@@ -203,6 +204,18 @@ if want k4r4 && { [ "$DEVICE" = cuda ] || [ "$ALLOW_CPU_GPU_STAGES" = 1 ]; }; th
   stage k4r4 14400 "$PY" experiments/gpu/k4_gonogo.py --n ${R4_N:-"128 192"} --L 16 --seeds "${R4_SEEDS:-0-2}" --N "$K4_NMC" --device "$DEVICE" --configs "K3c3,K4c3,round4+rank" --out "$GD/k4" --mc-cache "$GD/mc" ${K4_EXTRA:-}
   # shellcheck disable=SC2086
   stage k4r4big 14400 "$PY" experiments/gpu/k4_gonogo.py --n ${R4_N_BIG:-256} --L 16 --seeds "${R4_SEEDS:-0-2}" --N "$K4_NMC" --device "$DEVICE" --configs "K3c3,K4c3,round4" --out "$GD/k4" --mc-cache "$GD/mc" ${K4_EXTRA:-}
+fi
+if want k4r5big && { [ "$DEVICE" = cuda ] || [ "$ALLOW_CPU_GPU_STAGES" = 1 ]; }; then
+  # round 5 at the largest width: one configuration per process (a fresh CUDA context and pool each time),
+  # after two runs lost every n = 256 row to an instant OutOfMemoryError that the CPU peak (2.5 n^4) does not explain
+  t0=$(date +%s); nbig=0
+  for c in ${R5_BIG_CONFIGS}; do
+    # shellcheck disable=SC2086
+    "$PY" experiments/gpu/k4_gonogo.py --n ${R5_N_BIG} --L 16 --seeds "$K4_SEEDS" --N "$K4_NMC" --device "$DEVICE" --configs "$c" --out "$GD/k4" --mc-cache "$GD/mc" ${K4_EXTRA:-} >> "$LOG/k4r5big.log" 2>&1 || true
+    nbig=$((nbig + 1))
+  done
+  status k4r5big ok $(( $(date +%s) - t0 )) "$nbig configs, one process each"
+  nvidia-smi --query-gpu=memory.used,memory.total --format=csv >> "$LOG/k4r5big.log" 2>/dev/null || true
 fi
 if want k4L8 && { [ "$DEVICE" = cuda ] || [ "$ALLOW_CPU_GPU_STAGES" = 1 ]; }; then
   # depth-8 ladder for the width exponent of the exact chain (3 seeds)
